@@ -24,3 +24,4 @@ unsigned inria_cfg::normalized_positive_training_y_offset() const { return 16; }
 unsigned inria_cfg::normalized_positive_training_x_offset() const { return 16; }
 unsigned inria_cfg::normalized_positive_test_y_offset() const { return 3; }
 unsigned inria_cfg::normalized_positive_test_x_offset() const { return 3; }
+unsigned inria_cfg::random_windows_per_negative_training_sample() const { return 10; }

@@ -39,7 +39,7 @@ namespace mmp
 		scaled_image(scaled_image&& rhs);
 		scaled_image(cv::Mat src, float scale);
 
-		std::vector<sliding_window> sliding_windows() const { return windows; }
+		const std::vector<sliding_window>& sliding_windows() const { return windows; }
 		float get_scale() const { return scale; }
 		std::shared_ptr<const UocttiHOG> get_hog() const { return std::const_pointer_cast<const UocttiHOG>(hog); }
 	};
@@ -59,10 +59,10 @@ namespace mmp
 		image(image&& rhs);
 		image(cv::Mat img);
 
-		std::vector<detection> get_detections() const { return detections; }
+		const std::vector<detection>& get_detections() const { return detections; }
 		void add_detection(const cv::Rect& rect, double weigth);
-		void non_maximum_suppression(float min_overlap = 0.2f);
+		void suppress_non_maximum(float min_overlap = 0.2f);
 
-		std::vector<scaled_image> scaled_images() const { return images; }
+		const std::vector<scaled_image>& scaled_images() const { return images; }
 	};
 }

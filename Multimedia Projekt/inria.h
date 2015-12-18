@@ -27,6 +27,7 @@ namespace mmp
 		std::string train_annotation_path() const;
 		std::string positive_train_path() const;
 		std::string negative_train_path() const;
+		unsigned random_windows_per_negative_training_sample() const;
 
 		std::string normalized_positive_test_path() const;
 		unsigned normalized_positive_test_y_offset() const;

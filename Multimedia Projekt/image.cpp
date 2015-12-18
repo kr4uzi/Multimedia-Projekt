@@ -82,7 +82,7 @@ void image::add_detection(const cv::Rect& rect, double weight)
 	detections.emplace_back(rect, weight);
 }
 
-void image::non_maximum_suppression(float min_overlap)
+void image::suppress_non_maximum(float min_overlap)
 {
 	std::sort(detections.begin(), detections.end(), [](const detection& a, const detection& b) { return a.second > b.second; });
 

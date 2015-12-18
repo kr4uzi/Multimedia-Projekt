@@ -42,7 +42,7 @@ int main()
 	std::cout << std::endl << std::endl;
 
 
-	mmp::inria_cfg cfg("R:/INRIAPerson/", "R:/INRIAPerson/svm.dat", "R:/INRIAPerson/svmhard.dat", "R:/INRIAPerson/evaluation.m", "R:/INRIAPerson/evaluation_hard.m");
+	mmp::inria_cfg cfg("E:/INRIAPerson/", "E:/INRIAPerson/svm.dat", "E:/INRIAPerson/svmhard.dat", "E:/INRIAPerson/evaluation.m", "E:/INRIAPerson/evaluation_hard.m");
 
 	// train
 	{

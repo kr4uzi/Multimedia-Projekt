@@ -61,7 +61,7 @@ void qualitative_evaluator::show_detections(classifier& c, annotation::file& ann
 {
 	auto img = mmp::annotated_image(ann, src);
 	img.detect_all(c);
-	img.non_maximum_suppression();
+	img.suppress_non_maximum();
 
 	for (auto& d : img.get_detections())
 	{
@@ -129,7 +129,7 @@ quantitative_evaluator::quantitative_evaluator(inria_cfg& cfg, classifier& c)
 			}
 		}
 
-		img.non_maximum_suppression();
+		img.suppress_non_maximum();
 
 #pragma omp critical
 		{
@@ -166,7 +166,7 @@ quantitative_evaluator::quantitative_evaluator(inria_cfg& cfg, classifier& c)
 			}
 		}
 
-		img.non_maximum_suppression();
+		img.suppress_non_maximum();
 
 #pragma omp critical
 		{
@@ -181,7 +181,7 @@ quantitative_evaluator::quantitative_evaluator(inria_cfg& cfg, classifier& c)
 		}
 	}
 
-	std::cout << "evaluation finished at: ";
+	std::cout << std::endl << "evaluation finished at: ";
 	mmp::print_time();
 	std::cout << std::endl;
 }

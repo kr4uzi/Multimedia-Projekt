@@ -50,7 +50,7 @@ namespace mmp
 			std::string get_image_filename() const { return image_filename; }
 			cv::Vec3i get_image_size() const { return image_size; }
 			std::string get_database() const { return database; }
-			std::vector<element> get_objects() const { return objects; }
+			const std::vector<element>& get_objects() const { return objects; }
 		};
 	}
 }

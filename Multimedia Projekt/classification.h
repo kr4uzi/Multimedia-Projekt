@@ -1,30 +1,28 @@
 #pragma once
 #include <string>
-#include <vector>
 #include <deque>
-#include <svm_light/svm_light_util.h>	// SvmLightUtil, SparseVector
 #include <opencv2/core/core.hpp>		// Mat
 #include "inria.h"						// inria_cfg
+#include "sparse_vector.h"
 
 namespace mmp
 {
 	class classifier
 	{
-	public: 
-		static const unsigned hogs_per_negative = 10;
+	private:
+		// returns mat converted to array of style <index>:<weight> format (WORD *)
+		static void * mat_to_svector(const cv::Mat& mat);
+		static void * train(const std::deque<void *>& positives, const std::deque<void *>& negatives, long vec_size);
+		static double classify(void * model, const cv::Mat& mat, void ** sparse_vec);
+		static void save_model_to_file(void * model, const std::string& filename);
+		static void * load_model_from_file(const std::string& filename);
 
 	private:
-		SvmLightUtil svm;
-		const joachims::model * model;
+		void * model;
 
-		SvmLightUtil::Parameters parameters;
-		std::vector<SparseVector> positives;
-		std::vector<SparseVector> negatives;
-		std::deque<SparseVector> false_positives;
+		std::deque<void *> positives;
+		std::deque<void *> negatives;
 		const inria_cfg& cfg;
-
-	private:
-		static SparseVector convert_mat(const cv::Mat& mat);
 
 	public:
 		classifier(classifier&& rhs);
@@ -34,7 +32,6 @@ namespace mmp
 		void train();
 		void load(bool hard = false);
 
-		double classify(const SparseVector& feature) const;
 		double classify(const cv::Mat& mat) const;
 	};
 }

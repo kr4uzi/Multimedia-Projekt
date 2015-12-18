@@ -51,8 +51,8 @@ namespace mmp
 	public:
 		quantitative_evaluator(inria_cfg& cfg, classifier& svm);
 
-		std::vector<double> get_labels() const { return labels; }
-		std::vector<double> get_scores() const { return scores; }
+		const std::vector<double>& get_labels() const { return labels; }
+		const std::vector<double>& get_scores() const { return scores; }
 	};
 
 	class qualitative_evaluator

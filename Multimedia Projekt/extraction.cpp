@@ -2,6 +2,11 @@
 #include <vl/hog.h>
 using namespace mmp;
 
+/*
+todo:
+overload the array style converters for inplace (with a buffer of stride-size) 
+*/
+
 UocttiHOG::array_type UocttiHOG::vlarray_to_cvstylevec(const array_type& hog_array, array_type::size_type height, array_type::size_type width, array_type::size_type dimensions)
 {
 	std::vector<float> hog_converted(height * width * dimensions);

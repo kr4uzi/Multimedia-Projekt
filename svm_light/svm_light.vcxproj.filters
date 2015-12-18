@@ -15,66 +15,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="annotation.h">
+    <ClInclude Include="kernel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="extraction.h">
+    <ClInclude Include="svm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="helpers.h">
+    <ClInclude Include="svm_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="image.h">
+    <ClInclude Include="svm_learn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="scale_cache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inria.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="classification.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="evaulation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="svm_light_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sparse_vector.h">
+    <ClInclude Include="pr_loqo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="annotation.cpp">
+    <ClCompile Include="svm_classify.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="extraction.cpp">
+    <ClCompile Include="svm_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="helpers.cpp">
+    <ClCompile Include="svm_hideo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="svm_learn.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="image.cpp">
+    <ClCompile Include="svm_loqo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scale_cache.cpp">
+    <ClCompile Include="pr_loqo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inria.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="classification.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="evaluation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="svm_light_util.cpp">
+    <ClCompile Include="svm_learn_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
