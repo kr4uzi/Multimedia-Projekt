@@ -73,7 +73,7 @@ CFLOAT kernel(KERNEL_PARM *kernel_parm, DOC *a, DOC *b)
 	sum+=fa->factor*fb->factor*single_kernel(kernel_parm,fa,fb);
     }
   }
-  return(sum);
+  return (CFLOAT)sum;
 }
 
 CFLOAT single_kernel(KERNEL_PARM *kernel_parm, SVECTOR *a, SVECTOR *b) 
@@ -96,7 +96,7 @@ CFLOAT single_kernel(KERNEL_PARM *kernel_parm, SVECTOR *a, SVECTOR *b)
 }
 
 
-SVECTOR *create_svector(WORD *words, const char *userdefined, double factor)
+SVECTOR *create_svector(const WORD *words, const char *userdefined, double factor)
 {
 	SVECTOR *vec;
 	long    fnum, i;
@@ -128,7 +128,7 @@ SVECTOR *create_svector(WORD *words, const char *userdefined, double factor)
 	return(vec);
 }
 
-SVECTOR *copy_svector(SVECTOR *vec)
+SVECTOR *copy_svector(const SVECTOR *vec)
 {
   SVECTOR *newvec=NULL;
   if(vec) {
@@ -449,7 +449,7 @@ double model_length_s(MODEL *model, KERNEL_PARM *kernel_parm)
   return(sqrt(sum));
 }
 
-void clear_vector_n(double *vec, long int n)
+void clear_vector_n(double *vec, long n)
 {
   register long i;
   for(i=0;i<=n;i++) vec[i]=0;
@@ -687,8 +687,8 @@ void free_model(MODEL *model, int deep)
 }
 
 
-void read_documents(char *docfile, DOC ***docs, double **label, 
-		    long int *totwords, long int *totdoc)
+void read_documents(const char *docfile, DOC ***docs, double **label, 
+		    long *totwords, long *totdoc)
 {
   char *line,*comment;
   WORD *words;
@@ -762,7 +762,7 @@ void read_documents(char *docfile, DOC ***docs, double **label,
 
 int parse_document(char *line, WORD *words, double *label,
 		   long *queryid, long *slackid, double *costfactor,
-		   long int *numwords, long int max_words_doc,
+		   long *numwords, long max_words_doc,
 		   char **comment)
 {
   register long wpos,pos;
@@ -887,7 +887,7 @@ double *read_alphas(char *alphafile,long totdoc)
   return(alpha);
 }
 
-void nol_ll(const char *file, long int *nol, long int *wol, long int *ll) 
+void nol_ll(const char *file, long *nol, long *wol, long *ll) 
      /* Grep through file and count number of lines, maximum number of
         spaces per line, and longest line. */
 {
@@ -924,7 +924,7 @@ void nol_ll(const char *file, long int *nol, long int *wol, long int *ll)
   fclose(fl);
 }
 
-long minl(long int a, long int b)
+long minl(long a, long b)
 {
   if(a<b)
     return(a);
@@ -932,7 +932,7 @@ long minl(long int a, long int b)
     return(b);
 }
 
-long maxl(long int a, long int b)
+long maxl(long a, long b)
 {
   if(a>b)
     return(a);

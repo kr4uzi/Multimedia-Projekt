@@ -82,19 +82,15 @@ void lswitchrk_matrix(double *, long, long, long);
 
 double calculate_qp_objective(long, double *, double *, double *);
 
-
-
-double *optimize_qp(qp,epsilon_crit,nx,threshold,learn_parm)
-QP *qp;
-double *epsilon_crit;
-long nx; /* Maximum number of variables in QP */
-double *threshold; 
-LEARN_PARM *learn_parm;
 /* start the optimizer and return the optimal values */
 /* The HIDEO optimizer does not necessarily fully solve the problem. */
 /* Since it requires a strictly positive definite hessian, the solution */
 /* is restricted to a linear independent subset in case the matrix is */
 /* only semi-definite. */
+/* 
+nx: Maximum number of variables in QP 
+*/
+double *optimize_qp(QP *qp, double *epsilon_crit, long nx, double * threshold, LEARN_PARM *learn_parm)
 {
   long i,j;
   int result;
@@ -233,30 +229,26 @@ LEARN_PARM *learn_parm;
 }
 
 
-
-int optimize_hildreth_despo(n,m,precision,epsilon_crit,epsilon_a,maxiter,goal,
-			    smallround,lindep_sensitivity,g,g0,ce,ce0,low,up,
-			    primal,init,dual,lin_dependent,buffer,progress)
-     long   n;            /* number of variables */
-     long   m;            /* number of linear equality constraints [0,1] */
-     double precision;    /* solve at least to this dual precision */
-     double epsilon_crit; /* stop, if KT-Conditions approx fulfilled */
-     double epsilon_a;    /* precision of alphas at bounds */
-     long   maxiter;      /* stop after this many iterations */
-     long   goal;         /* keep going until goal fulfilled */
-     long   smallround;   /* use only two variables of steepest descent */
-     double lindep_sensitivity; /* epsilon for detecting linear dependent ex */
-     double *g;           /* hessian of objective */
-     double *g0;          /* linear part of objective */
-     double *ce,*ce0;     /* linear equality constraints */
-     double *low,*up;     /* box constraints */
-     double *primal;      /* primal variables */
-     double *init;        /* initial values of primal */
-     double *dual;        /* dual variables */
-     long   *lin_dependent;
-     double *buffer;
-     double *progress;    /* delta in the objective function between
-                             before and after */
+/* n:			number of variables 
+m;				number of linear equality constraints [0,1] 
+precision:		solve at least to this dual precision 
+epsilon_crit:	stop, if KT-Conditions approx fulfilled 
+epsilon_a:		precision of alphas at bounds 
+maxiter:		stop after this many iterations 
+goal:			keep going until goal fulfilled 
+smallround:		use only two variables of steepest descent 
+lindep_sensitivity: epsilon for detecting linear dependent ex 
+g:				hessian of objective 
+g0:				linear part of objective 
+ce, ce0;		linear equality constraints 
+low, up:		box constraints 
+primal:			primal variables 
+init:			initial values of primal 
+progress:		delta in the objective function between
+				before and after*/
+int optimize_hildreth_despo(long n, long m, double precision, double epsilon_crit, double epsilon_a, long maxiter, long goal,
+	long smallround, double lindep_sensitivity, double * g, double * g0, double * ce, double * ce0, double * low, double * up,
+	double * primal, double * init, double * dual, long  * lin_dependent, double * buffer, double * progress)    
 {
   long i,j,k,from,to,n_indep,changed;
   double sum,bmin=0,bmax=0;
@@ -638,24 +630,24 @@ int optimize_hildreth_despo(n,m,precision,epsilon_crit,epsilon_a,maxiter,goal,
 }
 
 
-int solve_dual(n,m,precision,epsilon_crit,maxiter,g,g0,ce,ce0,low,up,primal,
-	       d,d0,ig,dual,dual_old,temp,goal)
-     /* Solves the dual using the method of Hildreth and D'Espo. */
-     /* Can only handle problems with zero or exactly one */
-     /* equality constraints. */
+/* Solves the dual using the method of Hildreth and D'Espo. 
+ Can only handle problems with zero or exactly one 
+ equality constraints. 
 
-     long   n;            /* number of variables */
-     long   m;            /* number of linear equality constraints */
-     double precision;    /* solve at least to this dual precision */
-     double epsilon_crit; /* stop, if KT-Conditions approx fulfilled */
-     long   maxiter;      /* stop after that many iterations */
-     double *g;
-     double *g0;          /* linear part of objective */
-     double *ce,*ce0;     /* linear equality constraints */
-     double *low,*up;     /* box constraints */
-     double *primal;      /* variables (with initial values) */
-     double *d,*d0,*ig,*dual,*dual_old,*temp;       /* buffer  */
-     long goal;
+long   n;             number of variables 
+long   m;             number of linear equality constraints 
+double precision;     solve at least to this dual precision 
+double epsilon_crit;  stop, if KT-Conditions approx fulfilled 
+long   maxiter;       stop after that many iterations 
+double *g;
+double *g0;           linear part of objective 
+double *ce, *ce0;     linear equality constraints 
+double *low, *up;     box constraints 
+double *primal;      variables (with initial values) 
+double *d, *d0, *ig, *dual, *dual_old, *temp;       * buffer  */
+int solve_dual(long n, long m, double precision, double epsilon_crit, long maxiter, double *g, double *g0, double *ce, double *ce0,
+	double *low, double *up, double *primal,
+	double *d, double *d0, double *ig, double *dual, double *dual_old, double *temp, long goal)
 {
   long i,j,k,iter;
   double sum,w,maxviol,viol,temp1,temp2,isnantest;
@@ -920,13 +912,8 @@ int solve_dual(n,m,precision,epsilon_crit,maxiter,g,g0,ce,ce0,low,up,primal,
   }
 }
 
-
-void linvert_matrix(matrix,depth,inverse,lindep_sensitivity,lin_dependent)
-double *matrix;
-long depth;
-double *inverse,lindep_sensitivity;
-long *lin_dependent;  /* indicates the active parts of matrix on 
-			 input and output*/
+/*long *lin_dependent;   indicates the active parts of matrix on input and output*/
+void linvert_matrix(double *matrix, long depth, double *inverse, double lindep_sensitivity, long *lin_dependent)
 {
   long i,j,k;
   double factor;
@@ -972,9 +959,7 @@ long *lin_dependent;  /* indicates the active parts of matrix on
   }
 }
 
-void lprint_matrix(matrix,depth)
-double *matrix;
-long depth;
+void lprint_matrix(double *matrix, long depth)
 {
   long i,j;
   for(i=0;i<depth;i++) {
@@ -999,10 +984,7 @@ double scalar;
   }
 }
 
-void lcopy_matrix(matrix,depth,matrix2) 
-double *matrix;
-long depth;
-double *matrix2;
+void lcopy_matrix(double *matrix, long depth, double *matrix2)
 {
   long i;
   
@@ -1011,9 +993,7 @@ double *matrix2;
   }
 }
 
-void lswitch_rows_matrix(matrix,depth,r1,r2) 
-double *matrix;
-long depth,r1,r2;
+void lswitch_rows_matrix(double *matrix, long depth, long r1, long r2)
 {
   long i;
   double temp;
@@ -1025,9 +1005,7 @@ long depth,r1,r2;
   }
 }
 
-void lswitchrk_matrix(matrix,depth,rk1,rk2) 
-double *matrix;
-long depth,rk1,rk2;
+void lswitchrk_matrix(double *matrix, long depth, long rk1, long rk2)
 {
   long i;
   double temp;
@@ -1044,9 +1022,7 @@ long depth,rk1,rk2;
   }
 }
 
-double calculate_qp_objective(opt_n,opt_g,opt_g0,alpha)
-long opt_n;
-double *opt_g,*opt_g0,*alpha;
+double calculate_qp_objective(long opt_n, double * opt_g, double * opt_g0, double * alpha)
 {
   double obj;
   long i,j;

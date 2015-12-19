@@ -20,25 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h" />
-    <ClInclude Include="pr_loqo.h" />
     <ClInclude Include="svm.h" />
     <ClInclude Include="svm_common.h" />
     <ClInclude Include="svm_learn.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pr_loqo.c" />
-    <ClCompile Include="svm_classify.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="svm_common.c" />
     <ClCompile Include="svm_hideo.c" />
     <ClCompile Include="svm_learn.c" />
-    <ClCompile Include="svm_learn_main.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="svm_loqo.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3F2D1679-ABC2-42C5-8844-89BB69443CAA}</ProjectGuid>

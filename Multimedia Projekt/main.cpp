@@ -5,6 +5,7 @@
 #include "annotation.h"			// annotation::file
 #include "evaulation.h"			// qualitative_evaluator, quantitative_evaluator, mat_plot
 #include <ctime>				// time
+#include <cstdlib>				// system
 #include <iostream>				// cout, endl
 
 namespace
@@ -37,9 +38,7 @@ void qualitative_evaluation(mmp::inria_cfg& cfg, mmp::classifier& c, mmp::classi
 int main()
 {
 	std::cout << "MMP Markus Kraus" << std::endl;
-	std::cout << "starting at: "; 
-	mmp::print_time();
-	std::cout << std::endl << std::endl;
+	std::cout << "starting at: " << mmp::time_string() << std::endl << std::endl;
 
 
 	mmp::inria_cfg cfg("E:/INRIAPerson/", "E:/INRIAPerson/svm.dat", "E:/INRIAPerson/svmhard.dat", "E:/INRIAPerson/evaluation.m", "E:/INRIAPerson/evaluation_hard.m");
@@ -76,10 +75,7 @@ int main()
 
 
 	std::cout << std::endl;
-	std::cout << "finished at: ";
-	mmp::print_time();
-	std::cout << std::endl;
-
+	std::cout << "finished at: " << mmp::time_string() << std::endl;
 	std::cout << "press enter to exit" << std::endl;
-	std::cin.get();
+	std::system("pause");
 }

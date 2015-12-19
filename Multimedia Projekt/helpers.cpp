@@ -7,6 +7,7 @@
 #include <ctime>	// localtime
 #include <iostream>	// cout
 #include <iomanip>	// put_time
+#include <sstream>	// stringstream
 
 std::vector<std::string> mmp::files_in_folder(const std::string& folder)
 {
@@ -67,10 +68,12 @@ void mmp::print_progress(const std::string& info, unsigned long value, std::size
 	std::cout << message << "\r";
 }
 
-void mmp::print_time()
+std::string mmp::time_string()
 {
 	using namespace std::chrono;
 	auto now = system_clock::now();
 	auto now_t = std::chrono::system_clock::to_time_t(now);
-	std::cout << std::put_time(std::localtime(&now_t), "%Y-%m-%d %X");
+	std::stringstream ss;
+	ss << std::put_time(std::localtime(&now_t), "%Y-%m-%d %X");
+	return ss.str();
 }

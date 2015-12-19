@@ -27,14 +27,8 @@
     <ClInclude Include="svm_learn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pr_loqo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="svm_classify.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="svm_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,15 +36,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="svm_learn.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="svm_loqo.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pr_loqo.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="svm_learn_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

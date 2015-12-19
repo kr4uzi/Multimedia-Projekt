@@ -30,13 +30,9 @@ double *optimize_qp(QP *, double *, long, double *, LEARN_PARM *);
    docs/label. The resulting model is returned in the structure
    model. */
 
-void svm_learn_classification(DOC **docs, double *class, long int
-			      totdoc, long int totwords, 
-			      LEARN_PARM *learn_parm, 
-			      KERNEL_PARM *kernel_parm, 
-			      KERNEL_CACHE *kernel_cache, 
-			      MODEL *model,
-			      double *alpha)
+void svm_learn_classification(DOC **docs, double *class, long totdoc, long totwords, 
+	LEARN_PARM *learn_parm, KERNEL_PARM *kernel_parm,  KERNEL_CACHE *kernel_cache, 
+	MODEL *model, double *alpha)
      /* docs:        Training vectors (x-part) */
      /* class:       Training labels (y-part, zero if test example for
                      transduction) */
@@ -468,8 +464,8 @@ void svm_learn_classification(DOC **docs, double *class, long int
    docs/label. The resulting model is returned in the structure
    model. */
 
-void svm_learn_regression(DOC **docs, double *value, long int totdoc, 
-			  long int totwords, LEARN_PARM *learn_parm, 
+void svm_learn_regression(DOC **docs, double *value, long totdoc, 
+			  long totwords, LEARN_PARM *learn_parm, 
 			  KERNEL_PARM *kernel_parm, 
 			  KERNEL_CACHE **kernel_cache, MODEL *model)
      /* docs:        Training vectors (x-part) */
@@ -700,8 +696,8 @@ void svm_learn_regression(DOC **docs, double *value, long int totdoc,
   free(learn_parm->svm_cost);
 }
 
-void svm_learn_ranking(DOC **docs, double *rankvalue, long int totdoc, 
-		       long int totwords, LEARN_PARM *learn_parm, 
+void svm_learn_ranking(DOC **docs, double *rankvalue, long totdoc, 
+		       long totwords, LEARN_PARM *learn_parm, 
 		       KERNEL_PARM *kernel_parm, KERNEL_CACHE **kernel_cache, 
 		       MODEL *model)
      /* docs:        Training vectors (x-part) */
@@ -858,8 +854,8 @@ void svm_learn_ranking(DOC **docs, double *rankvalue, long int totdoc,
 
    This corresponds to the -z o option. */
 
-void svm_learn_optimization(DOC **docs, double *rhs, long int
-			    totdoc, long int totwords, 
+void svm_learn_optimization(DOC **docs, double *rhs, long
+			    totdoc, long totwords, 
 			    LEARN_PARM *learn_parm, 
 			    KERNEL_PARM *kernel_parm, 
 			    KERNEL_CACHE *kernel_cache, MODEL *model,
@@ -1169,15 +1165,15 @@ void svm_learn_optimization(DOC **docs, double *rhs, long int
 }
 
 
-long optimize_to_convergence(DOC **docs, long int *label, long int totdoc, 
-			     long int totwords, LEARN_PARM *learn_parm, 
+long optimize_to_convergence(DOC **docs, long *label, long totdoc, 
+			     long totwords, LEARN_PARM *learn_parm, 
 			     KERNEL_PARM *kernel_parm, 
 			     KERNEL_CACHE *kernel_cache, 
 			     SHRINK_STATE *shrink_state, MODEL *model, 
-			     long int *inconsistent, long int *unlabeled, 
+			     long *inconsistent, long *unlabeled, 
 			     double *a, double *lin, double *c, 
 			     TIMING *timing_profile, double *maxdiff, 
-			     long int heldout, long int retrain)
+			     long heldout, long retrain)
      /* docs: Training vectors (x-part) */
      /* label: Training labels/value (y-part, zero if test example for
 			      transduction) */
@@ -1611,9 +1607,9 @@ long optimize_to_convergence(DOC **docs, long int *label, long int totdoc,
   return(iteration);
 }
 
-long optimize_to_convergence_sharedslack(DOC **docs, long int *label, 
-			     long int totdoc, 
-			     long int totwords, LEARN_PARM *learn_parm, 
+long optimize_to_convergence_sharedslack(DOC **docs, long *label, 
+			     long totdoc, 
+			     long totwords, LEARN_PARM *learn_parm, 
 			     KERNEL_PARM *kernel_parm, 
 			     KERNEL_CACHE *kernel_cache, 
 			     SHRINK_STATE *shrink_state, MODEL *model, 
@@ -2045,8 +2041,8 @@ long optimize_to_convergence_sharedslack(DOC **docs, long int *label,
 
 
 double compute_objective_function(double *a, double *lin, double *c, 
-				  double eps, long int *label, 
-				  long int *active2dnum)
+				  double eps, long *label, 
+				  long *active2dnum)
      /* Return value of objective function. */
      /* Works only relative to the active variables! */
 {
@@ -2061,13 +2057,13 @@ double compute_objective_function(double *a, double *lin, double *c,
   return(criterion);
 }
 
-void clear_index(long int *index)
+void clear_index(long *index)
               /* initializes and empties index */
 {
   index[0]=-1;
 } 
 
-void add_to_index(long int *index, long int elem)
+void add_to_index(long *index, long elem)
      /* initializes and empties index */
 {
   register long i;
@@ -2076,7 +2072,7 @@ void add_to_index(long int *index, long int elem)
   index[i+1]=-1;
 }
 
-long compute_index(long int *binfeature, long int range, long int *index)
+long compute_index(long *binfeature, long range, long *index)
      /* create an inverted index of binfeature */
 {               
   register long i,ii;
@@ -2095,10 +2091,10 @@ long compute_index(long int *binfeature, long int range, long int *index)
 }
 
 
-void optimize_svm(DOC **docs, long int *label, long int *unlabeled, 
-		  long int *exclude_from_eq_const, double eq_target,
-		  long int *chosen, long int *active2dnum, MODEL *model, 
-		  long int totdoc, long int *working2dnum, long int varnum, 
+void optimize_svm(DOC **docs, long *label, long *unlabeled, 
+		  long *exclude_from_eq_const, double eq_target,
+		  long *chosen, long *active2dnum, MODEL *model, 
+		  long totdoc, long *working2dnum, long varnum, 
 		  double *a, double *lin, double *c, LEARN_PARM *learn_parm, 
 		  CFLOAT *aicache, KERNEL_PARM *kernel_parm, QP *qp, 
 		  double *epsilon_crit_target)
@@ -2140,11 +2136,11 @@ void optimize_svm(DOC **docs, long int *label, long int *unlabeled,
     }
 }
 
-void compute_matrices_for_optimization(DOC **docs, long int *label, 
-          long int *unlabeled, long *exclude_from_eq_const, double eq_target,
-	  long int *chosen, long int *active2dnum, 
-          long int *key, MODEL *model, double *a, double *lin, double *c, 
-	  long int varnum, long int totdoc, LEARN_PARM *learn_parm, 
+void compute_matrices_for_optimization(DOC **docs, long *label, 
+          long *unlabeled, long *exclude_from_eq_const, double eq_target,
+	  long *chosen, long *active2dnum, 
+          long *key, MODEL *model, double *a, double *lin, double *c, 
+	  long varnum, long totdoc, LEARN_PARM *learn_parm, 
           CFLOAT *aicache, KERNEL_PARM *kernel_parm, QP *qp)
 {
   register long ki,kj,i,j;
@@ -2216,10 +2212,10 @@ void compute_matrices_for_optimization(DOC **docs, long int *label,
   }
 }
 
-long calculate_svm_model(DOC **docs, long int *label, long int *unlabeled, 
+long calculate_svm_model(DOC **docs, long *label, long *unlabeled, 
 			 double *lin, double *a, double *a_old, double *c, 
-			 LEARN_PARM *learn_parm, long int *working2dnum, 
-			 long int *active2dnum, MODEL *model)
+			 LEARN_PARM *learn_parm, long *working2dnum, 
+			 long *active2dnum, MODEL *model)
      /* Compute decision function based on current values */
      /* of alpha. */
 {
@@ -2336,13 +2332,13 @@ long calculate_svm_model(DOC **docs, long int *label, long int *unlabeled,
   return(model->sv_num-1); /* have to substract one, since element 0 is empty*/
 }
 
-long check_optimality(MODEL *model, long int *label, long int *unlabeled, 
-		      double *a, double *lin, double *c, long int totdoc, 
+long check_optimality(MODEL *model, long *label, long *unlabeled, 
+		      double *a, double *lin, double *c, long totdoc, 
 		      LEARN_PARM *learn_parm, double *maxdiff, 
-		      double epsilon_crit_org, long int *misclassified, 
-		      long int *inconsistent, long int *active2dnum,
-		      long int *last_suboptimal_at, 
-		      long int iteration, KERNEL_PARM *kernel_parm)
+		      double epsilon_crit_org, long *misclassified, 
+		      long *inconsistent, long *active2dnum,
+		      long *last_suboptimal_at, 
+		      long iteration, KERNEL_PARM *kernel_parm)
      /* Check KT-conditions */
 {
   long i,ii,retrain;
@@ -2400,15 +2396,15 @@ long check_optimality(MODEL *model, long int *label, long int *unlabeled,
   return(retrain);
 }
 
-long check_optimality_sharedslack(DOC **docs, MODEL *model, long int *label,
+long check_optimality_sharedslack(DOC **docs, MODEL *model, long *label,
 		      double *a, double *lin, double *c, double *slack,
 		      double *alphaslack,
-		      long int totdoc, 
+		      long totdoc, 
 		      LEARN_PARM *learn_parm, double *maxdiff, 
-		      double epsilon_crit_org, long int *misclassified, 
-		      long int *active2dnum,
-		      long int *last_suboptimal_at, 
-		      long int iteration, KERNEL_PARM *kernel_parm)
+		      double epsilon_crit_org, long *misclassified, 
+		      long *active2dnum,
+		      long *last_suboptimal_at, 
+		      long iteration, KERNEL_PARM *kernel_parm)
      /* Check KT-conditions */
 {
   long i,ii,retrain;
@@ -2468,9 +2464,9 @@ long check_optimality_sharedslack(DOC **docs, MODEL *model, long int *label,
   return(retrain);
 }
 
-void compute_shared_slacks(DOC **docs, long int *label, 
+void compute_shared_slacks(DOC **docs, long *label, 
 			   double *a, double *lin, 
-			   double *c, long int *active2dnum,
+			   double *c, long *active2dnum,
 			   LEARN_PARM *learn_parm, 
 			   double *slack, double *alphaslack)
      /* compute the value of shared slacks and the joint alphas */
@@ -2492,10 +2488,10 @@ void compute_shared_slacks(DOC **docs, long int *label,
 }
 
 
-long identify_inconsistent(double *a, long int *label, 
-			   long int *unlabeled, long int totdoc, 
+long identify_inconsistent(double *a, long *label, 
+			   long *unlabeled, long totdoc, 
 			   LEARN_PARM *learn_parm, 
-			   long int *inconsistentnum, long int *inconsistent)
+			   long *inconsistentnum, long *inconsistent)
 {
   long i,retrain;
 
@@ -2519,10 +2515,10 @@ long identify_inconsistent(double *a, long int *label,
   return(retrain);
 }
 
-long identify_misclassified(double *lin, long int *label, 
-			    long int *unlabeled, long int totdoc, 
-			    MODEL *model, long int *inconsistentnum, 
-			    long int *inconsistent)
+long identify_misclassified(double *lin, long *label, 
+			    long *unlabeled, long totdoc, 
+			    MODEL *model, long *inconsistentnum, 
+			    long *inconsistent)
 {
   long i,retrain;
   double dist;
@@ -2547,11 +2543,11 @@ long identify_misclassified(double *lin, long int *label,
   return(retrain);
 }
 
-long identify_one_misclassified(double *lin, long int *label, 
-				long int *unlabeled, 
-				long int totdoc, MODEL *model, 
-				long int *inconsistentnum, 
-				long int *inconsistent)
+long identify_one_misclassified(double *lin, long *label, 
+				long *unlabeled, 
+				long totdoc, MODEL *model, 
+				long *inconsistentnum, 
+				long *inconsistent)
 {
   long i,retrain,maxex=-1;
   double dist,maxdist=0;
@@ -2582,10 +2578,10 @@ long identify_one_misclassified(double *lin, long int *label,
   return(retrain);
 }
 
-void update_linear_component(DOC **docs, long int *label, 
-			     long int *active2dnum, double *a, 
-			     double *a_old, long int *working2dnum, 
-			     long int totdoc, long int totwords, 
+void update_linear_component(DOC **docs, long *label, 
+			     long *active2dnum, double *a, 
+			     double *a_old, long *working2dnum, 
+			     long totdoc, long totwords, 
 			     KERNEL_PARM *kernel_parm, 
 			     KERNEL_CACHE *kernel_cache, 
 			     double *lin, CFLOAT *aicache, double *weights)
@@ -2627,13 +2623,13 @@ void update_linear_component(DOC **docs, long int *label,
 }
 
 
-long incorporate_unlabeled_examples(MODEL *model, long int *label, 
-				    long int *inconsistent, 
-				    long int *unlabeled, 
+long incorporate_unlabeled_examples(MODEL *model, long *label, 
+				    long *inconsistent, 
+				    long *unlabeled, 
 				    double *a, double *lin, 
-				    long int totdoc, double *selcrit, 
-				    long int *select, long int *key, 
-				    long int transductcycle, 
+				    long totdoc, double *selcrit, 
+				    long *select, long *key, 
+				    long transductcycle, 
 				    KERNEL_PARM *kernel_parm, 
 				    LEARN_PARM *learn_parm)
 {
@@ -2966,20 +2962,20 @@ long incorporate_unlabeled_examples(MODEL *model, long int *label,
 
 /*************************** Working set selection ***************************/
 
-long select_next_qp_subproblem_grad(long int *label, 
-				    long int *unlabeled, 
+long select_next_qp_subproblem_grad(long *label, 
+				    long *unlabeled, 
 				    double *a, double *lin, 
-				    double *c, long int totdoc, 
-				    long int qp_size, 
+				    double *c, long totdoc, 
+				    long qp_size, 
 				    LEARN_PARM *learn_parm, 
-				    long int *inconsistent, 
-				    long int *active2dnum, 
-				    long int *working2dnum, 
+				    long *inconsistent, 
+				    long *active2dnum, 
+				    long *working2dnum, 
 				    double *selcrit, 
-				    long int *select, 
+				    long *select, 
 				    KERNEL_CACHE *kernel_cache, 
-				    long int cache_only,
-				    long int *key, long int *chosen)
+				    long cache_only,
+				    long *key, long *chosen)
      /* Use the feasible direction approach to select the next
       qp-subproblem (see chapter 'Selecting a good working set'). If
       'cache_only' is true, then the variables are selected only among
@@ -3061,21 +3057,21 @@ long select_next_qp_subproblem_grad(long int *label,
   return(choosenum);
 }
 
-long select_next_qp_subproblem_rand(long int *label, 
-				    long int *unlabeled, 
+long select_next_qp_subproblem_rand(long *label, 
+				    long *unlabeled, 
 				    double *a, double *lin, 
-				    double *c, long int totdoc, 
-				    long int qp_size, 
+				    double *c, long totdoc, 
+				    long qp_size, 
 				    LEARN_PARM *learn_parm, 
-				    long int *inconsistent, 
-				    long int *active2dnum, 
-				    long int *working2dnum, 
+				    long *inconsistent, 
+				    long *active2dnum, 
+				    long *working2dnum, 
 				    double *selcrit, 
-				    long int *select, 
+				    long *select, 
 				    KERNEL_CACHE *kernel_cache, 
-				    long int *key, 
-				    long int *chosen, 
-				    long int iteration)
+				    long *key, 
+				    long *chosen, 
+				    long iteration)
 /* Use the feasible direction approach to select the next
    qp-subproblem (see section 'Selecting a good working set'). Chooses
    a feasible direction at (pseudo) random to help jump over numerical
@@ -3137,12 +3133,12 @@ long select_next_qp_subproblem_rand(long int *label,
   return(choosenum);
 }
 
-long select_next_qp_slackset(DOC **docs, long int *label, 
+long select_next_qp_slackset(DOC **docs, long *label, 
 			     double *a, double *lin, 
 			     double *slack, double *alphaslack, 
 			     double *c,
 			     LEARN_PARM *learn_parm, 
-			     long int *active2dnum, double *maxviol)
+			     long *active2dnum, double *maxviol)
      /* returns the slackset with the largest internal violation */
 {
   long i,ii,maxdiffid;
@@ -3168,8 +3164,8 @@ long select_next_qp_slackset(DOC **docs, long int *label,
 }
 
 
-void select_top_n(double *selcrit, long int range, long int *select, 
-		  long int n)
+void select_top_n(double *selcrit, long range, long *select, 
+		  long n)
 {
   register long i,j;
 
@@ -3204,8 +3200,8 @@ void select_top_n(double *selcrit, long int range, long int *select,
 
 /******************************** Shrinking  *********************************/
 
-void init_shrink_state(SHRINK_STATE *shrink_state, long int totdoc, 
-		       long int maxhistory)
+void init_shrink_state(SHRINK_STATE *shrink_state, long totdoc, 
+		       long maxhistory)
 {
   long i;
 
@@ -3240,13 +3236,13 @@ long shrink_problem(DOC **docs,
 		    LEARN_PARM *learn_parm, 
 		    SHRINK_STATE *shrink_state, 
 		    KERNEL_PARM *kernel_parm,
-		    long int *active2dnum, 
-		    long int *last_suboptimal_at, 
-		    long int iteration, 
-		    long int totdoc, 
-		    long int minshrink, 
+		    long *active2dnum, 
+		    long *last_suboptimal_at, 
+		    long iteration, 
+		    long totdoc, 
+		    long minshrink, 
 		    double *a, 
-		    long int *inconsistent)
+		    long *inconsistent)
      /* Shrink some variables away.  Do the shrinking only if at least
         minshrink variables can be removed. */
 {
@@ -3307,17 +3303,17 @@ long shrink_problem(DOC **docs,
 } 
 
 
-void reactivate_inactive_examples(long int *label, 
-				  long int *unlabeled, 
+void reactivate_inactive_examples(long *label, 
+				  long *unlabeled, 
 				  double *a, 
 				  SHRINK_STATE *shrink_state, 
 				  double *lin, 
 				  double *c, 
-				  long int totdoc, 
-				  long int totwords, 
-				  long int iteration, 
+				  long totdoc, 
+				  long totwords, 
+				  long iteration, 
 				  LEARN_PARM *learn_parm, 
-				  long int *inconsistent, 
+				  long *inconsistent, 
 				  DOC **docs, 
 				  KERNEL_PARM *kernel_parm, 
 				  KERNEL_CACHE *kernel_cache, 
@@ -3431,8 +3427,8 @@ void reactivate_inactive_examples(long int *label,
 /****************************** Cache handling *******************************/
 
 void get_kernel_row(KERNEL_CACHE *kernel_cache, DOC **docs, 
-		    long int docnum, long int totdoc, 
-		    long int *active2dnum, CFLOAT *buffer, 
+		    long docnum, long totdoc, 
+		    long *active2dnum, CFLOAT *buffer, 
 		    KERNEL_PARM *kernel_parm)
      /* Get's a row of the matrix of kernel values This matrix has the
       same form as the Hessian, just that the elements are not
@@ -3466,7 +3462,7 @@ void get_kernel_row(KERNEL_CACHE *kernel_cache, DOC **docs,
 
 
 void cache_kernel_row(KERNEL_CACHE *kernel_cache, DOC **docs, 
-		      long int m, KERNEL_PARM *kernel_parm)
+		      long m, KERNEL_PARM *kernel_parm)
      /* Fills cache for the row m */
 {
   register DOC *ex;
@@ -3497,7 +3493,7 @@ void cache_kernel_row(KERNEL_CACHE *kernel_cache, DOC **docs,
 
  
 void cache_multiple_kernel_rows(KERNEL_CACHE *kernel_cache, DOC **docs, 
-				long int *key, long int varnum, 
+				long *key, long varnum, 
 				KERNEL_PARM *kernel_parm)
      /* Fills cache for the rows in key */
 {
@@ -3509,8 +3505,8 @@ void cache_multiple_kernel_rows(KERNEL_CACHE *kernel_cache, DOC **docs,
 }
 
  
-void kernel_cache_shrink(KERNEL_CACHE *kernel_cache, long int totdoc, 
-			 long int numshrink, long int *after)
+void kernel_cache_shrink(KERNEL_CACHE *kernel_cache, long totdoc, 
+			 long numshrink, long *after)
      /* Remove numshrink columns in the cache which correspond to
         examples marked 0 in after. */
 {
@@ -3573,7 +3569,7 @@ void kernel_cache_shrink(KERNEL_CACHE *kernel_cache, long int totdoc,
   }
 }
 
-KERNEL_CACHE *kernel_cache_init(long int totdoc, long int buffsize)
+KERNEL_CACHE *kernel_cache_init(long totdoc, long buffsize)
 {
   long i;
   KERNEL_CACHE *kernel_cache;
@@ -3661,7 +3657,7 @@ long kernel_cache_malloc(KERNEL_CACHE *kernel_cache)
   return(-1);
 }
 
-void kernel_cache_free(KERNEL_CACHE *kernel_cache, long int i)
+void kernel_cache_free(KERNEL_CACHE *kernel_cache, long i)
 {
   kernel_cache->occu[i]=0;
   kernel_cache->elems--;
@@ -3692,7 +3688,7 @@ long kernel_cache_free_lru(KERNEL_CACHE *kernel_cache)
 
 
 CFLOAT *kernel_cache_clean_and_malloc(KERNEL_CACHE *kernel_cache, 
-				      long int docnum)
+				      long docnum)
      /* Get a free cache entry. In case cache is full, the lru element
         is removed. */
 {
@@ -3713,7 +3709,7 @@ CFLOAT *kernel_cache_clean_and_malloc(KERNEL_CACHE *kernel_cache,
 		      kernel_cache->index[docnum])));
 }
 
-long kernel_cache_touch(KERNEL_CACHE *kernel_cache, long int docnum)
+long kernel_cache_touch(KERNEL_CACHE *kernel_cache, long docnum)
      /* Update lru time to avoid removal from cache. */
 {
   if(kernel_cache && kernel_cache->index[docnum] != -1) {
@@ -3723,7 +3719,7 @@ long kernel_cache_touch(KERNEL_CACHE *kernel_cache, long int docnum)
   return(0);
 }
   
-long kernel_cache_check(KERNEL_CACHE *kernel_cache, long int docnum)
+long kernel_cache_check(KERNEL_CACHE *kernel_cache, long docnum)
      /* Is that row cached? */
 {
   return(kernel_cache->index[docnum] != -1);
@@ -3737,8 +3733,8 @@ long kernel_cache_space_available(KERNEL_CACHE *kernel_cache)
   
 /************************** Compute estimates ******************************/
 
-void compute_xa_estimates(MODEL *model, long int *label, 
-			  long int *unlabeled, long int totdoc, 
+void compute_xa_estimates(MODEL *model, long *label, 
+			  long *unlabeled, long totdoc, 
 			  DOC **docs, double *lin, double *a, 
 			  KERNEL_PARM *kernel_parm, 
 			  LEARN_PARM *learn_parm, double *error, 
@@ -3819,10 +3815,10 @@ void compute_xa_estimates(MODEL *model, long int *label,
 }
 
 
-double distribute_alpha_t_greedily(long int *sv2dnum, long int svnum, 
+double distribute_alpha_t_greedily(long *sv2dnum, long svnum, 
 				   DOC **docs, double *a, 
-				   long int docnum, 
-				   long int *label, 
+				   long docnum, 
+				   long *label, 
 				   KERNEL_PARM *kernel_parm, 
 				   LEARN_PARM *learn_parm, double thresh)
      /* Experimental Code improving plain XiAlpha Estimates by
@@ -3908,9 +3904,9 @@ double distribute_alpha_t_greedily(long int *sv2dnum, long int svnum,
 }
 
 
-void estimate_transduction_quality(MODEL *model, long int *label, 
-				   long int *unlabeled, 
-				   long int totdoc, DOC **docs, double *lin) 
+void estimate_transduction_quality(MODEL *model, long *label, 
+				   long *unlabeled, 
+				   long totdoc, DOC **docs, double *lin) 
      /* Loo-bound based on observation that loo-errors must have an
 	equal distribution in both training and test examples, given
 	that the test examples are classified correctly. Compare
@@ -4018,7 +4014,7 @@ double estimate_sphere(MODEL *model, KERNEL_PARM *kernel_parm)
   return(maxxlen);
 }
 
-double estimate_r_delta(DOC **docs, long int totdoc, KERNEL_PARM *kernel_parm)
+double estimate_r_delta(DOC **docs, long totdoc, KERNEL_PARM *kernel_parm)
 {
   long i;
   double maxxlen,xlen;
@@ -4042,7 +4038,7 @@ double estimate_r_delta(DOC **docs, long int totdoc, KERNEL_PARM *kernel_parm)
   return(maxxlen);
 }
 
-double estimate_r_delta_average(DOC **docs, long int totdoc, 
+double estimate_r_delta_average(DOC **docs, long totdoc, 
 				KERNEL_PARM *kernel_parm)
 {
   long i;
@@ -4064,7 +4060,7 @@ double estimate_r_delta_average(DOC **docs, long int totdoc,
   return(avgxlen/totdoc);
 }
 
-double length_of_longest_document_vector(DOC **docs, long int totdoc, 
+double length_of_longest_document_vector(DOC **docs, long totdoc, 
 					 KERNEL_PARM *kernel_parm)
 {
   long i;
@@ -4084,8 +4080,8 @@ double length_of_longest_document_vector(DOC **docs, long int totdoc,
 /****************************** IO-handling **********************************/
 
 void write_prediction(char *predfile, MODEL *model, double *lin, 
-		      double *a, long int *unlabeled, 
-		      long int *label, long int totdoc, 
+		      double *a, long *unlabeled, 
+		      long *label, long totdoc, 
 		      LEARN_PARM *learn_parm)
 {
   FILE *predfl;
@@ -4126,7 +4122,7 @@ void write_prediction(char *predfile, MODEL *model, double *lin,
 }
 
 void write_alphas(char *alphafile, double *a, 
-		  long int *label, long int totdoc)
+		  long *label, long totdoc)
 {
   FILE *alphafl;
   long i;

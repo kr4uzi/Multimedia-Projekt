@@ -39,10 +39,13 @@
     <ClInclude Include="evaulation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="svm_light_util.h">
+    <ClInclude Include="sparse_vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sparse_vector.h">
+    <ClInclude Include="svm_light_wrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,7 +77,7 @@
     <ClCompile Include="evaluation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="svm_light_util.cpp">
+    <ClCompile Include="swm_light_wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

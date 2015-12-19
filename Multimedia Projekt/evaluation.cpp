@@ -99,9 +99,7 @@ void qualitative_evaluator::show_detections(classifier& c, annotation::file& ann
 quantitative_evaluator::quantitative_evaluator(inria_cfg& cfg, classifier& c)
 	: svm(c)
 {
-	std::cout << "starting evaluation at: ";
-	mmp::print_time();
-	std::cout << std::endl;
+	std::cout << "starting evaluation at: " << time_string() << std::endl;
 
 	const auto positives = files_in_folder(cfg.normalized_positive_test_path());
 	const auto negatives = files_in_folder(cfg.negative_test_path());
@@ -181,9 +179,7 @@ quantitative_evaluator::quantitative_evaluator(inria_cfg& cfg, classifier& c)
 		}
 	}
 
-	std::cout << std::endl << "evaluation finished at: ";
-	mmp::print_time();
-	std::cout << std::endl;
+	std::cout << std::endl << "evaluation finished at: " << time_string() << std::endl;
 }
 
 mat_plot::mat_plot(const std::vector<double>& lbls, const std::vector<double>& scrs)

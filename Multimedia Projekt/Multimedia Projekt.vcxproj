@@ -26,12 +26,10 @@
     <ClInclude Include="helpers.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="inria.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="scale_cache.h" />
     <ClInclude Include="sparse_vector.h" />
-    <ClInclude Include="svm_light_util.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="svm_light_wrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="annotation.cpp" />
@@ -43,10 +41,7 @@
     <ClCompile Include="inria.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scale_cache.cpp" />
-    <ClCompile Include="svm_light_util.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="swm_light_wrapper.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{11DFB63D-BEC4-4901-87E7-07B97193E14F}</ProjectGuid>
@@ -107,12 +102,12 @@
     <LibraryPath>C:\vlfeat-0.9.18\bin\win64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\.;C:\Program Files\MATLAB\R2015b\extern\include;C:\boost_1_59_0;C:\opencv\build\include;C:\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;C:\boost_1_59_0\stage\lib;C:\opencv\build\x64\vc12\lib;C:\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\MATLAB\R2015b\extern\include;C:\boost_1_59_0;C:\opencv\build\include;C:\vlfeat-0.9.20;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;C:\boost_1_59_0\stage\lib;C:\opencv\build\x64\vc12\lib;C:\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\.;C:\Program Files\MATLAB\R2015b\extern\include;C:\boost_1_59_0;C:\opencv\build\include;C:\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;C:\boost_1_59_0\stage\lib;C:\opencv\build\x64\vc12\lib;C:\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\MATLAB\R2015b\extern\include;C:\boost_1_59_0;C:\opencv\build\include;C:\vlfeat-0.9.20;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;C:\boost_1_59_0\stage\lib;C:\opencv\build\x64\vc12\lib;C:\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
