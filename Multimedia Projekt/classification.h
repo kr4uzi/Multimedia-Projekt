@@ -1,10 +1,8 @@
 #pragma once
-#include <cstddef>						// size_t
-#include <string>
 #include <deque>
-#include <opencv2/core/core.hpp>		// Mat
-#include "inria.h"						// inria_cfg
-#include "svm_light_wrapper.h"
+#include <opencv2/core/core.hpp>	// Mat
+#include "inria.h"					// inria_cfg
+#include "svm_light_wrapper.h"		// svm::model
 
 namespace mmp
 {

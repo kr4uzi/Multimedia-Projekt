@@ -19,10 +19,6 @@
 #ifndef SVM_COMMON
 #define SVM_COMMON
 
-# define MAXSHRINK     50000    /* maximum number of shrinking rounds */
-# define MAXFEATNUM 99999999    /* maximum feature number (must be in
-			  	   valid range of long int type!) */
-
 # include <stdio.h>
 # include <ctype.h>
 # include <math.h>
@@ -31,14 +27,16 @@
 # include <time.h> 
 # include <float.h>
 
-# define VERSION       "V6.01"
-# define VERSION_DATE  "01.09.04"
+# define VERSION       "V6.02"
+# define VERSION_DATE  "14.08.08"
 
 # define CFLOAT  float       /* the type of float to use for caching */
                              /* kernel evaluations. Using float saves */
                              /* us some memory, but you can use double, too */
 # define FNUM    long        /* the type used for storing feature ids */
 # define FVAL    float       /* the type used for storing feature values */
+# define MAXFEATNUM 99999999 /* maximum feature number (must be in
+			  	valid range of FNUM type and long int!) */
 
 # define LINEAR  0           /* linear kernel type */
 # define POLY    1           /* polynoial kernel type */
@@ -49,6 +47,8 @@
 # define REGRESSION     2    /* train regression model */
 # define RANKING        3    /* train ranking model */
 # define OPTIMIZATION   4    /* train on general set of constraints */
+
+# define MAXSHRINK     50000    /* maximum number of shrinking rounds */
 
 typedef struct word {
   FNUM    wnum;	               /* word number */
@@ -258,11 +258,11 @@ typedef struct shrink_state {
 
 double classify_example(MODEL *, DOC *);
 double classify_example_linear(MODEL *, DOC *);
-CFLOAT kernel(KERNEL_PARM *, DOC *, DOC *); 
-CFLOAT single_kernel(KERNEL_PARM *, SVECTOR *, SVECTOR *); 
+double kernel(KERNEL_PARM *, DOC *, DOC *); 
+double single_kernel(KERNEL_PARM *, SVECTOR *, SVECTOR *); 
 double custom_kernel(KERNEL_PARM *, SVECTOR *, SVECTOR *); 
-SVECTOR *create_svector(const WORD *, const char *, double);
-SVECTOR *copy_svector(const SVECTOR *);
+SVECTOR *create_svector(WORD *, char *, double);
+SVECTOR *copy_svector(SVECTOR *);
 void   free_svector(SVECTOR *);
 double    sprod_ss(SVECTOR *, SVECTOR *);
 SVECTOR*  sub_ss(SVECTOR *, SVECTOR *); 
@@ -278,12 +278,12 @@ double sprod_ns(double *, SVECTOR *);
 void   add_weight_vector_to_linear_model(MODEL *);
 DOC    *create_example(long, long, long, double, SVECTOR *);
 void   free_example(DOC *, long);
-MODEL  *read_model(const char *);
+MODEL  *read_model(char *);
 MODEL  *copy_model(MODEL *);
 void   free_model(MODEL *, int);
 void   read_documents(const char *, DOC ***, double **, long *, long *);
 int    parse_document(char *, WORD *, double *, long *, long *, double *, long *, long, char **);
-double *read_alphas(char *,long);
+double *read_alphas(const char *,long);
 void   nol_ll(const char *, long *, long *, long *);
 long   minl(long, long);
 long   maxl(long, long);

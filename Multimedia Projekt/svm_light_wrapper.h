@@ -12,12 +12,31 @@ namespace mmp
 		public:
 			typedef std::size_t size_type;
 
+			class const_iterator
+			{
+			private:
+				void * _word;
+
+			private:
+				friend class sparse_vector;
+				const_iterator(void * _word);
+
+			public:
+				sparse_vector::size_type index() const;
+				float operator*() const;
+				const_iterator& operator++();
+				bool operator==(const const_iterator& rhs) const;
+				bool operator!=(const const_iterator& rhs) const { return !(*this == rhs); }
+			};
+
 		private:
 			size_type _size;
 			void * _vec;
+			void * _word_end;
 
 		public:
-			sparse_vector(sparse_vector&& rhs);	// only move is allowed
+			sparse_vector(const sparse_vector& rhs);
+			sparse_vector(sparse_vector&& rhs);
 
 			sparse_vector(const cv::Mat& mat);
 			~sparse_vector();
@@ -26,10 +45,22 @@ namespace mmp
 			size_type size() const { return _size; }
 			void * data() { return _vec; }
 			const void * data() const { return _vec; }
+
+			const_iterator begin() const;
+			const_iterator end() const;
 		};
+
+		std::string to_string(const sparse_vector& svec);
 
 		class model
 		{
+		public:
+			enum class example_type
+			{
+				negative = -1,
+				positive = 1
+			};
+
 		private:
 			void * _model;
 			std::vector<void *> docs;
@@ -37,7 +68,7 @@ namespace mmp
 			svm::sparse_vector::size_type vec_size;
 
 		private:
-			void push_back_example(const svm::sparse_vector& svec, char sign);
+			void push_back_example(const svm::sparse_vector& svec, example_type type);
 
 		public:
 			model& operator=(model&& rhs);
@@ -53,8 +84,8 @@ namespace mmp
 				docs.reserve(negatives.size() + positives.size());
 				targets.reserve(negatives.size() + positives.size());
 
-				for (auto& negative : negatives) push_back_example(negative, -1);
-				for (auto& positive : positives) push_back_example(positive, 1);
+				for (auto& negative : negatives) { assert(negative.size() == vec_size); push_back_example(negative, example_type::negative); }
+				for (auto& positive : positives) { assert(positive.size() == vec_size); push_back_example(positive, example_type::positive); }
 			}
 
 			~model();

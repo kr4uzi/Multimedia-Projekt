@@ -7,6 +7,7 @@
 #include <ctime>				// time
 #include <cstdlib>				// system
 #include <iostream>				// cout, endl
+#include <thread>
 
 namespace
 {
@@ -38,10 +39,11 @@ void qualitative_evaluation(mmp::inria_cfg& cfg, mmp::classifier& c, mmp::classi
 int main()
 {
 	std::cout << "MMP Markus Kraus" << std::endl;
-	std::cout << "starting at: " << mmp::time_string() << std::endl << std::endl;
+	std::cout << "started at: " << mmp::time_string() << std::endl << std::endl;
 
-
-	mmp::inria_cfg cfg("E:/INRIAPerson/", "E:/INRIAPerson/svm.dat", "E:/INRIAPerson/svmhard.dat", "E:/INRIAPerson/evaluation.m", "E:/INRIAPerson/evaluation_hard.m");
+	mmp::inria_cfg cfg("R:/INRIAPerson/", 
+		"R:/INRIAPerson/svm.dat", "R:/INRIAPerson/svm_hard.dat", 
+		"R:/INRIAPerson/evaluation.m", "R:/INRIAPerson/evaluation_hard.m");
 
 	// train
 	{
@@ -49,24 +51,34 @@ int main()
 		c.train();
 	}
 
+	exit(0);
+
 	std::cout << std::endl;
 
 	mmp::classifier c_normal(cfg);
 	mmp::classifier c_hard(cfg);
-	c_normal.load();
-	c_hard.load(true);
+
+	std::cout << "loading svm files ..." << std::endl;
+
+	std::thread thn([&c_normal]() { c_normal.load(); });
+	std::thread thh([&c_hard]() { c_hard.load(true); });
+
+	thn.join();
+	std::cout << cfg.svm_file() << " loaded" << std::endl;
+	thh.join();
+	std::cout << cfg.svm_file_hard() << " loaded" << std::endl;
 
 	// quantitative evaluation
-	mmp::quantitative_evaluator eval(cfg, c_normal);
-	mmp::mat_plot plot(eval.get_labels(), eval.get_scores());
-	plot.show("evaluation");
-	plot.save(cfg.evaluation_file());
+	//mmp::quantitative_evaluator eval(cfg, c_normal);
+	//mmp::mat_plot plot(eval.get_labels(), eval.get_scores());
+	//plot.show("evaluation");
+	//plot.save(cfg.evaluation_file());
 
-	// quantitative evaluation with hard negative mined samples
-	mmp::quantitative_evaluator eval_hard(cfg, c_hard);
-	mmp::mat_plot plot_hard(eval_hard.get_labels(), eval_hard.get_scores());
-	plot_hard.show("hard evaluation");
-	plot_hard.save(cfg.evaluation_file_hard());
+	// quantitative evaluation with hard negative samples
+	//mmp::quantitative_evaluator eval_hard(cfg, c_hard);
+	//mmp::mat_plot plot_hard(eval_hard.get_labels(), eval_hard.get_scores());
+	//plot_hard.show("hard evaluation");
+	//plot_hard.save(cfg.evaluation_file_hard());
 
 	// qualitative evaluation
 	std::cout << std::endl << "qualitataive evaluation . . ." << std::endl;

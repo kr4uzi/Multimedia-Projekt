@@ -14,13 +14,13 @@ namespace mmp
 		static const int height = 128;
 
 	private:
-		std::shared_ptr<const UocttiHOG> hog;
+		std::shared_ptr<const hog> _hog;
 		float _scale;
 		int x;
 		int y;
 
 	public:
-		sliding_window(std::shared_ptr<const UocttiHOG> hog, int x, int y, float scale);
+		sliding_window(std::shared_ptr<const hog> _hog, int x, int y, float scale);
 
 		cv::Mat features() const;
 		cv::Rect window() const;
@@ -32,7 +32,7 @@ namespace mmp
 	private:
 		float scale;
 		std::vector<sliding_window> windows;
-		std::shared_ptr<UocttiHOG> hog;
+		std::shared_ptr<hog> _hog;
 
 	public:
 		scaled_image(const scaled_image& rhs);
@@ -41,7 +41,7 @@ namespace mmp
 
 		const std::vector<sliding_window>& sliding_windows() const { return windows; }
 		float get_scale() const { return scale; }
-		std::shared_ptr<const UocttiHOG> get_hog() const { return std::const_pointer_cast<const UocttiHOG>(hog); }
+		std::shared_ptr<const hog> get_hog() const { return std::const_pointer_cast<const hog>(_hog); }
 	};
 
 	class image

@@ -1,6 +1,9 @@
 #include "svm_light_wrapper.h"
 #include <svm_light/svm.h>
-#include <cmath>
+#include <cmath>		// fabs
+#include <type_traits>	// underlying_type
+#include <cstring>		// strcpy
+#include <fstream>
 using namespace mmp::svm;
 
 namespace
@@ -33,14 +36,111 @@ namespace
 		kernel_parm->rbf_gamma = 1.0;
 		kernel_parm->coef_lin = 1;
 		kernel_parm->coef_const = 1;
+		std::strncpy(kernel_parm->custom, "empty", sizeof(KERNEL_PARM::custom));
 	}
+}
+
+std::string mmp::svm::to_string(const sparse_vector& svec)
+{
+	std::string str;
+	//for (sparse_vector::size_type i = 1; i <= svec.size(); i++)
+	//{
+	//	auto val = svec[i];
+	//	if (std::fabs(val) > 0)
+	//	{
+	//		str += ' ';
+	//		str += std::to_string(i);
+	//		str += ':';
+	//		str += std::to_string(val);
+	//	}
+	//}
+	for (auto i = svec.begin(); i != svec.end(); ++i)
+	{
+		str += std::to_string(i.index());
+		str += ':';
+		str += std::to_string(*i);
+		str += ' ';
+	}
+
+	return str;
+}
+
+sparse_vector::const_iterator sparse_vector::begin() const
+{
+	return const_iterator(((SVECTOR *)_vec)->words);
+}
+
+sparse_vector::const_iterator sparse_vector::end() const
+{
+	return const_iterator(_word_end);
+}
+
+sparse_vector::const_iterator::const_iterator(void * word)
+	: _word(word)
+{
+
+}
+
+bool sparse_vector::const_iterator::operator==(const const_iterator& rhs) const
+{
+	return _word == rhs._word;
+}
+
+sparse_vector::const_iterator& sparse_vector::const_iterator::operator++()
+{
+	auto word = (WORD *)_word;
+	_word = ++word;
+	return *this;
+}
+
+float sparse_vector::const_iterator::operator*() const
+{
+	return ((WORD *)_word)->weight;
+}
+
+sparse_vector::size_type sparse_vector::const_iterator::index() const
+{
+	return ((WORD *)_word)->wnum;
+}
+
+sparse_vector::sparse_vector(const sparse_vector& rhs)
+	: _size(rhs._size)
+{
+	_vec = copy_svector((SVECTOR *)rhs._vec);
 }
 
 sparse_vector::sparse_vector(const cv::Mat& mat)
 	: _size(mat.rows * mat.cols * mat.channels())
 {
+	//const auto channels = mat.channels();
+	//std::vector<WORD> words(mat.rows * mat.cols * channels + 1);
+
+	//unsigned i = 0;
+	//for (int y = 0; y < mat.rows; y++)
+	//{
+	//	auto row = mat.ptr<float>(y);
+
+	//	for (int x = 0; x < mat.cols; x++)
+	//	{
+	//		for (int c = 0; c < channels; c++)
+	//		{
+	//			if (std::fabs(row[c]) > 0)
+	//			{
+	//				words[i].wnum = y * mat.cols * channels + x * channels + c + 1;
+	//				words[i].weight = row[c];
+	//				i++;					
+	//			}
+	//		}
+
+	//		row += channels;
+	//	}
+	//}
+	//words[i].wnum = 0;
+
+	//_vec = create_svector(words.data(), "", 1);
 	const auto channels = mat.channels();
-	std::vector<WORD> words(mat.rows * mat.cols * channels + 1);
+	auto vec = new SVECTOR;
+	vec->words = new WORD[mat.rows * mat.cols * channels + 1];
 
 	unsigned i = 0;
 	for (int y = 0; y < mat.rows; y++)
@@ -51,10 +151,10 @@ sparse_vector::sparse_vector(const cv::Mat& mat)
 		{
 			for (int c = 0; c < channels; c++)
 			{
-				if (std::fabs(row[c]))
+				if (std::fabs(row[c]) > 0)
 				{
-					words[i].wnum = y * mat.cols + x * channels + c + 1;
-					words[i].weight = row[c];
+					vec->words[i].wnum = y * mat.cols * channels + x * channels + c + 1;
+					vec->words[i].weight = row[c];
 					i++;
 				}
 			}
@@ -62,38 +162,55 @@ sparse_vector::sparse_vector(const cv::Mat& mat)
 			row += channels;
 		}
 	}
-	words[i].wnum = 0;
+	vec->words[i].wnum = 0;
+	_word_end = &vec->words[i];
 
-	_vec = create_svector(words.data(), "", 1);
+	vec->twonorm_sq = sprod_ss(vec, vec);
+	vec->userdefined = new char[1];
+	vec->userdefined[0] = 0;
+	vec->kernel_id = 0;
+	vec->next = nullptr;
+	vec->factor = 1;
+	_vec = vec;
 }
 
 sparse_vector::sparse_vector(sparse_vector&& rhs)
-	: _vec(rhs._vec), _size(rhs._size)
+	: _vec(rhs._vec), _size(rhs._size), _word_end(rhs._word_end)
 {
 	rhs._vec = nullptr;
 }
 
 sparse_vector::~sparse_vector()
 {
-	free_svector((SVECTOR *)_vec);
+	//free_svector((SVECTOR *)_vec);
+	if (_vec)
+	{
+		auto vec = (SVECTOR *)_vec;
+		delete[] vec->words;
+		delete[] vec->userdefined;
+		delete vec;
+	}
 }
 
 float sparse_vector::operator[](size_type idx) const
 {
-	auto vec = (SVECTOR *)_vec;
-	for (std::size_t i = 0; i < _size; i++)
+	auto start = ((SVECTOR *)_vec)->words;
+	while (start->wnum && start->wnum <= idx)
 	{
-		if (vec->words[i].wnum == idx)
-			return vec->words[i].weight;
+		if (start->wnum == idx)
+			return start->weight;
+
+		start++;
 	}
 
 	return 0;
 }
 
-void mmp::svm::model::push_back_example(const sparse_vector& svec, char sign)
+void mmp::svm::model::push_back_example(const svm::sparse_vector& svec, example_type sign)
 {
+	typedef std::underlying_type<example_type>::type etype;
 	docs.push_back(create_example((long)docs.size(), 0, 0, 1, (SVECTOR *)svec.data()));
-	targets.push_back(sign);
+	targets.push_back(static_cast<etype>(sign));
 }
 
 mmp::svm::model& mmp::svm::model::operator=(mmp::svm::model&& rhs)
@@ -122,6 +239,7 @@ mmp::svm::model::model(mmp::svm::model&& rhs)
 mmp::svm::model::model(const std::string& filename)
 {
 	_model = read_model(const_cast<char *>(filename.c_str()));
+	add_weight_vector_to_linear_model((MODEL *)_model);
 }
 
 void mmp::svm::model::learn()
@@ -138,20 +256,22 @@ void mmp::svm::model::learn()
 	add_weight_vector_to_linear_model(temp);
 
 	_model = copy_model(temp);
-	free_model(temp, 0);	// dont delete docs
+	free_model(temp, 0);	// we're not owner of the docs (they get deleted when this object is beeing destructed)
 }
 
 mmp::svm::model::~model()
 {
 	if (_model)
-		free_model((MODEL *)_model, 1);
+		free_model((MODEL *)_model, 1);	// delete docs (added via constructor or via learn [copy])
 
 	for (auto& doc : docs)
-		free_example((DOC *)doc, 0);	// dont delete vectors
+		free_example((DOC *)doc, 0);	// dont delete sparse_vectors
 }
 
 double mmp::svm::model::classify(const svm::sparse_vector& vec) const
 {
+	if (!_model) throw std::exception("model not loaded!");
+
 	auto doc = create_example(0, 0, 0, 0, (SVECTOR *)vec.data());
 	auto dist = classify_example_linear((MODEL *)_model, doc);
 	free_example(doc, 0);
@@ -160,5 +280,7 @@ double mmp::svm::model::classify(const svm::sparse_vector& vec) const
 
 void mmp::svm::model::save(const std::string& filename) const
 {
-	write_model(const_cast<char *>(filename.c_str()), (MODEL *)_model);
+	if (!_model) throw std::exception("model not loaded!");
+
+	write_model(filename.c_str(), (MODEL *)_model);
 }

@@ -18,37 +18,9 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="annotation.h" />
-    <ClInclude Include="classification.h" />
-    <ClInclude Include="evaulation.h" />
-    <ClInclude Include="extraction.h" />
-    <ClInclude Include="helpers.h" />
-    <ClInclude Include="hog_util.h" />
-    <ClInclude Include="image.h" />
-    <ClInclude Include="inria.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="scale_cache.h" />
-    <ClInclude Include="svm_light_wrapper.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="annotation.cpp" />
-    <ClCompile Include="classification.cpp" />
-    <ClCompile Include="evaluation.cpp" />
-    <ClCompile Include="extraction.cpp" />
-    <ClCompile Include="helpers.cpp" />
-    <ClCompile Include="hog_util.cpp" />
-    <ClCompile Include="image.cpp" />
-    <ClCompile Include="inria.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="scale_cache.cpp" />
-    <ClCompile Include="swm_light_wrapper.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{11DFB63D-BEC4-4901-87E7-07B97193E14F}</ProjectGuid>
-    <RootNamespace>MultimediaProjekt</RootNamespace>
+    <ProjectGuid>{F1BBF0F8-D9BA-4240-AE9C-E563102C3262}</ProjectGuid>
+    <RootNamespace>svm_light_old</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -72,7 +44,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -96,21 +68,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\opencv\build\include;C:\vlfeat-0.9.18;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\vlfeat-0.9.18\bin\win64;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\opencv\build\include;C:\vlfeat-0.9.18;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\vlfeat-0.9.18\bin\win64;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Program Files\MATLAB\R2015b\extern\include;C:\boost_1_59_0;C:\opencv\build\include;C:\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;C:\boost_1_59_0\stage\lib;C:\opencv\build\x64\vc12\lib;C:\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\.;C:\Program Files\MATLAB\R2015b\extern\include;C:\boost_1_59_0;C:\opencv\build\include;C:\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;C:\boost_1_59_0\stage\lib;C:\opencv\build\x64\vc12\lib;C:\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\.;C:\boost_1_59_0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\boost_1_59_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,21 +78,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WITH_MATLAB;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>svm_lightd.lib;opencv_core2411d.lib;opencv_highgui2411d.lib;opencv_imgproc2411d.lib;vl.lib;libmx.lib;libeng.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -143,7 +95,6 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -151,24 +102,33 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WITH_MATLAB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OpenMPSupport>true</OpenMPSupport>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>svm_light.lib;opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;libmx.lib;libeng.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="kernel.h" />
+    <ClInclude Include="shared\DatatypeConverter.h" />
+    <ClInclude Include="shared\Macro.h" />
+    <ClInclude Include="sparse_vector.h" />
+    <ClInclude Include="svm.h" />
+    <ClInclude Include="svm_common.h" />
+    <ClInclude Include="svm_learn.h" />
+    <ClInclude Include="svm_light_util.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="svm_common.cpp" />
+    <ClCompile Include="svm_hideo.cpp" />
+    <ClCompile Include="svm_learn.cpp" />
+    <ClCompile Include="svm_light_util.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

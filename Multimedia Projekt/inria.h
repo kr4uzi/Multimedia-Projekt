@@ -35,5 +35,8 @@ namespace mmp
 		std::string test_annotation_path() const;
 		std::string positive_test_path() const;
 		std::string negative_test_path() const;
+
+		bool debug() const { return true; }
+		std::string training_file() const { return root + "/training2.dat"; }
 	};
 }

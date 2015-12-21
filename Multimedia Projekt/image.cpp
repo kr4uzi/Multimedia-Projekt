@@ -6,15 +6,15 @@
 #include <algorithm>					// sort, remove_if
 using namespace mmp;
 
-sliding_window::sliding_window(std::shared_ptr<const UocttiHOG> h, int x, int y, float scale)
-	: hog(h), _scale(scale), x(x), y(y)
+sliding_window::sliding_window(std::shared_ptr<const hog> h, int x, int y, float scale)
+	: _hog(h), _scale(scale), x(x), y(y)
 {
 
 }
 
 cv::Mat sliding_window::features() const
 {
-	return (*hog)(cv::Rect(x, y, width, height));
+	return (*_hog)(cv::Rect(x, y, width, height));
 }
 
 cv::Rect sliding_window::window() const
@@ -23,25 +23,25 @@ cv::Rect sliding_window::window() const
 }
 
 scaled_image::scaled_image(const scaled_image& rhs)
-	: scale(rhs.scale), windows(rhs.windows), hog(rhs.hog)
+	: scale(rhs.scale), windows(rhs.windows), _hog(rhs._hog)
 {
 
 }
 
 scaled_image::scaled_image(scaled_image&& rhs)
-	: scale(rhs.scale), windows(std::move(rhs.windows)), hog(std::move(rhs.hog))
+	: scale(rhs.scale), windows(std::move(rhs.windows)), _hog(std::move(rhs._hog))
 {
 
 }
 
 scaled_image::scaled_image(cv::Mat src, float scale)
-	: scale(scale), hog(std::make_shared<UocttiHOG>(src))
+	: scale(scale), _hog(std::make_shared<hog>(src))
 {
 	// sliding windows for current scale
-	for (int y = 0; y <= src.rows - sliding_window::height; y += UocttiHOG::hog_cellsize)
+	for (int y = 0; y <= src.rows - sliding_window::height; y += hog::hog_cellsize)
 	{
-		for (int x = 0; x <= src.cols - sliding_window::width; x += UocttiHOG::hog_cellsize)
-			windows.emplace_back(std::const_pointer_cast<const UocttiHOG>(hog), x, y, scale);
+		for (int x = 0; x <= src.cols - sliding_window::width; x += hog::hog_cellsize)
+			windows.emplace_back(std::const_pointer_cast<const hog>(_hog), x, y, scale);
 	}
 }
 
