@@ -37,6 +37,6 @@ namespace mmp
 		std::string negative_test_path() const;
 
 		bool debug() const { return true; }
-		std::string training_file() const { return root + "/training2.dat"; }
+		std::string training_file() const { return root + "/training_normal.dat"; }
 	};
 }

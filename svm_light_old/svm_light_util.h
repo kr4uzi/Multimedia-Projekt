@@ -8,7 +8,57 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <deque>
 #include <svm_light_old/sparse_vector.h>
+#include <opencv2/core/core.hpp>
+
+namespace svm
+{
+	class sparse_vector
+	{
+	public:
+		typedef std::size_t size_type;
+
+		class const_iterator
+		{
+		private:
+			void * _word;
+
+		private:
+			friend class sparse_vector;
+			const_iterator(void * _word);
+
+		public:
+			sparse_vector::size_type index() const;
+			float operator*() const;
+			const_iterator& operator++();
+			bool operator==(const const_iterator& rhs) const;
+			bool operator!=(const const_iterator& rhs) const { return !(*this == rhs); }
+		};
+
+	private:
+		size_type _size;
+		void * _vec;
+		void * _word_end;
+
+	public:
+		sparse_vector(const sparse_vector& rhs);
+		sparse_vector(sparse_vector&& rhs);
+
+		sparse_vector(const cv::Mat& mat);
+		~sparse_vector();
+
+		float operator[](size_type i) const;
+		size_type size() const { return _size; }
+		void * data() { return _vec; }
+		const void * data() const { return _vec; }
+
+		const_iterator begin() const;
+		const_iterator end() const;
+	};
+
+	std::string to_string(const sparse_vector& svec);
+}
 
 enum EXAMPLE_LABEL
 {
@@ -96,6 +146,9 @@ public:
 	/// - cost_ratio should be set to the default (1.0), i.e. if the ratio of positive and negative examples is balanced
 	/// - parameters stores all information about the training parameters, such as C, the kernel type and the model type 
 	void train(std::vector<SparseVector> const& pos_examples, std::vector<SparseVector> const& neg_examples, int size_n, std::string const& svm_model_file, double cost_ratio, Parameters const& parameters) const;
+	//added
+	void train(std::deque<svm::sparse_vector> const& pos_examples, std::deque<svm::sparse_vector> const& neg_examples, int size_n, const std::string& model_file, double cost_ratio, Parameters const& parameters) const;
+
 	joachims::MODEL const* train(std::vector<SparseVector> const& pos_examples, std::vector<SparseVector> const& neg_examples, int size_n, double cost_ratio, Parameters const& parameters) const;
 	joachims::MODEL const* train(std::vector<double const*> const& examples, std::vector<double> const& targets, int size_n, Parameters const& parameters) const;
 
@@ -111,7 +164,10 @@ public:
 	double classify(SparseVector const& example, int size_n, joachims::MODEL const* svm_model) const;
 	double const* classify(std::vector<SparseVector> const& examples, int size_n, joachims::MODEL const* svm_model) const;
 	double const* classify(std::vector<SparseVector> const& pos_examples, std::vector<SparseVector> const& neg_examples, int size_n, joachims::MODEL const* svm_model) const;
-  double classify(double const* example, int size_n, joachims::MODEL const* svm_model) const;
+	double classify(double const* example, int size_n, joachims::MODEL const* svm_model) const;
+	//added
+	double classify(const svm::sparse_vector& svec, int size_n, joachims::MODEL const * svm_model) const;
+
 
 	void readFromFile(std::string const& file, std::vector<SparseVector>& examples, std::vector<double>& targets, int size_n) const;
 	void readFromFile(std::string const& file, std::vector<SparseVector>& examples, EXAMPLE_LABEL example_label, int size_n) const;

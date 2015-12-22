@@ -5,6 +5,126 @@
 using namespace std;
 using namespace joachims;
 
+std::string svm::to_string(const sparse_vector& svec)
+{
+	std::string str;
+	for (auto i = svec.begin(); i != svec.end(); ++i)
+	{
+		str += std::to_string(i.index());
+		str += ':';
+		str += std::to_string(*i);
+		str += ' ';
+	}
+
+	return str;
+}
+
+svm::sparse_vector::const_iterator svm::sparse_vector::begin() const
+{
+	return const_iterator(((SVECTOR *)_vec)->words);
+}
+
+svm::sparse_vector::const_iterator svm::sparse_vector::end() const
+{
+	return const_iterator(_word_end);
+}
+
+svm::sparse_vector::const_iterator::const_iterator(void * word)
+	: _word(word)
+{
+
+}
+
+bool svm::sparse_vector::const_iterator::operator==(const const_iterator& rhs) const
+{
+	return _word == rhs._word;
+}
+
+svm::sparse_vector::const_iterator& svm::sparse_vector::const_iterator::operator++()
+{
+	auto word = (JWORD *)_word;
+	_word = ++word;
+	return *this;
+}
+
+float svm::sparse_vector::const_iterator::operator*() const
+{
+	return ((JWORD *)_word)->weight;
+}
+
+svm::sparse_vector::size_type svm::sparse_vector::const_iterator::index() const
+{
+	return ((JWORD *)_word)->wnum;
+}
+
+svm::sparse_vector::sparse_vector(const svm::sparse_vector& rhs)
+	: _size(rhs._size)
+{
+	_vec = copy_svector((SVECTOR *)rhs._vec);
+}
+
+svm::sparse_vector::sparse_vector(const cv::Mat& mat)
+	: _size(mat.rows * mat.cols * mat.channels())
+{
+	const auto channels = mat.channels();
+	std::vector<JWORD> words(mat.rows * mat.cols * channels + 1);
+	std::vector<JWORD>::size_type i = 0;
+
+	for (int y = 0; y < mat.rows; y++)
+	{
+		auto row = mat.ptr<float>(y);
+
+		for (int x = 0; x < mat.cols; x++)
+		{
+			for (int c = 0; c < channels; c++)
+			{
+				if (std::fabs(row[c]) > 0)
+				{
+					words[i].wnum = y * mat.cols * channels + x * channels + c + 1;
+					words[i].weight = row[c];
+					i++;
+				}
+			}
+
+			row += channels;
+		}
+	}
+	words[i].wnum = 0;
+
+	auto vec = create_svector(words.data(), "", 1);
+	_vec = vec;
+
+	// get the end() - iterator
+	i = 0;
+	for (auto iter = vec->words; iter->wnum != 0; iter++) i++;
+	_word_end = &vec->words[i];
+}
+
+svm::sparse_vector::sparse_vector(svm::sparse_vector&& rhs)
+	: _vec(rhs._vec), _size(rhs._size), _word_end(rhs._word_end)
+{
+	rhs._vec = nullptr;
+}
+
+svm::sparse_vector::~sparse_vector()
+{
+	free_svector((SVECTOR *)_vec);
+}
+
+float svm::sparse_vector::operator[](size_type idx) const
+{
+	auto start = ((SVECTOR *)_vec)->words;
+	while (start->wnum && start->wnum <= idx)
+	{
+		if (start->wnum == idx)
+			return start->weight;
+
+		start++;
+	}
+
+	return 0;
+}
+
 SvmLightUtil::SvmLightUtil()
 {
 	setVerbosity(DEFAULT_VERBOSITY);
@@ -65,6 +185,45 @@ void SvmLightUtil::getDecisionFunctionParameters(MODEL const* svm_model, int siz
 JWORD* SvmLightUtil::allocateSparseVector(int size_n)
 {
 	return (JWORD *)my_malloc(sizeof(JWORD)*(size_n+1));
+}
+
+void SvmLightUtil::train(std::deque<svm::sparse_vector> const& pos_examples, std::deque<svm::sparse_vector> const& neg_examples, int size_n, const std::string& svm_file, double cost_ratio, Parameters const& parameters) const
+{
+	vector<SparseVector> examples;
+	vector<double> targets;
+	vector<double> costfactors;
+
+	for (auto& vec : pos_examples)
+	{
+		SparseVector svec(size_n);
+		for (auto i = vec.begin(); i != vec.end(); ++i)
+			svec[i.index()] = *i;
+		examples.push_back(std::move(svec));
+	}
+
+	for (auto& svec : neg_examples)
+	{
+		SparseVector svec(size_n);
+		for (auto i = svec.begin(); i != svec.end(); ++i)
+			svec[i.index()] = *i;
+		examples.push_back(std::move(svec));
+	}
+
+	targets.insert(targets.end(), pos_examples.size(), POS_EXAMPLE);
+	targets.insert(targets.end(), neg_examples.size(), NEG_EXAMPLE);
+	costfactors.insert(costfactors.end(), pos_examples.size(), 1);
+	costfactors.insert(costfactors.end(), neg_examples.size(), 1);
+
+	train(examples, targets, costfactors, size_n, svm_file, cost_ratio, parameters);
+}
+
+double SvmLightUtil::classify(const svm::sparse_vector& vec, int size_n, joachims::MODEL const * svm_model) const
+{
+	SparseVector svec(size_n);
+	for (auto i = vec.begin(); i != vec.end(); ++i)
+		svec[i.index()] = *i;
+
+	return classify(svec, size_n, svm_model);
 }
 
 MODEL const* SvmLightUtil::train(DOC **docs, long totwords, long totdoc, double *target, double cost_ratio, SvmLightUtil::Parameters const& parameters) const

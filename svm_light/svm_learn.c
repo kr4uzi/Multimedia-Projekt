@@ -4083,7 +4083,7 @@ double length_of_longest_document_vector(DOC **docs, long int totdoc,
 
 /****************************** IO-handling **********************************/
 
-void write_prediction(const char *predfile, MODEL *model, double *lin, 
+void write_prediction(char *predfile, MODEL *model, double *lin, 
 		      double *a, long int *unlabeled, 
 		      long int *label, long int totdoc, 
 		      LEARN_PARM *learn_parm)
@@ -4125,7 +4125,7 @@ void write_prediction(const char *predfile, MODEL *model, double *lin,
   }
 }
 
-void write_alphas(const char *alphafile, double *a, 
+void write_alphas(char *alphafile, double *a, 
 		  long int *label, long int totdoc)
 {
   FILE *alphafl;

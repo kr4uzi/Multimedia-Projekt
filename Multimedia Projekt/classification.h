@@ -2,14 +2,17 @@
 #include <deque>
 #include <opencv2/core/core.hpp>	// Mat
 #include "inria.h"					// inria_cfg
-#include "svm_light_wrapper.h"		// svm::model
+//#include "svm_light_wrapper.h"		// svm::model
+#include <svm_light_old/svm_light_util.h>
 
 namespace mmp
 {
 	class classifier
 	{
 	private:
-		svm::model model;
+		//svm::model model;
+		SvmLightUtil util;
+		joachims::model const * model;
 
 		std::deque<svm::sparse_vector> positives;
 		std::deque<svm::sparse_vector> negatives;

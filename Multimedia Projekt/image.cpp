@@ -23,19 +23,19 @@ cv::Rect sliding_window::window() const
 }
 
 scaled_image::scaled_image(const scaled_image& rhs)
-	: scale(rhs.scale), windows(rhs.windows), _hog(rhs._hog)
+	: scale(rhs.scale), windows(rhs.windows), _hog(rhs._hog), ttt(rhs.ttt)
 {
 
 }
 
 scaled_image::scaled_image(scaled_image&& rhs)
-	: scale(rhs.scale), windows(std::move(rhs.windows)), _hog(std::move(rhs._hog))
+	: scale(rhs.scale), windows(std::move(rhs.windows)), _hog(std::move(rhs._hog)), ttt(std::move(rhs.ttt))
 {
 
 }
 
 scaled_image::scaled_image(cv::Mat src, float scale)
-	: scale(scale), _hog(std::make_shared<hog>(src))
+	: scale(scale), _hog(std::make_shared<hog>(src)), ttt(src.clone())
 {
 	// sliding windows for current scale
 	for (int y = 0; y <= src.rows - sliding_window::height; y += hog::hog_cellsize)
@@ -79,7 +79,23 @@ image::image(cv::Mat src)
 
 void image::add_detection(const cv::Rect& rect, double weight)
 {
-	detections.emplace_back(rect, weight);
+	bool overlapped = false;
+	for (unsigned i = 0; i < detections.size(); i++)
+	{
+		if (get_overlap(detections[i].first, rect) >= 0.2f)
+		{
+			overlapped = true;
+
+			if (detections[i].second < weight)
+			{
+				detections[i] = std::make_pair(rect, weight);
+				return;
+			}
+		}
+	}
+
+	if (!overlapped)
+		detections.emplace_back(rect, weight);
 }
 
 void image::suppress_non_maximum(float min_overlap)

@@ -152,10 +152,10 @@ double estimate_r_delta_average(DOC **, long, KERNEL_PARM *);
 double estimate_r_delta(DOC **, long, KERNEL_PARM *); 
 double length_of_longest_document_vector(DOC **, long, KERNEL_PARM *); 
 
-void   write_model(const char *, MODEL *);
-void   write_prediction(const char *, MODEL *, double *, double *, long *, long *,
+void   write_model(char *, MODEL *);
+void   write_prediction(char *, MODEL *, double *, double *, long *, long *,
 			long, LEARN_PARM *);
-void   write_alphas(const char *, double *, long *, long);
+void   write_alphas(char *, double *, long *, long);
 
 typedef struct cache_parm_s {
   KERNEL_CACHE *kernel_cache;

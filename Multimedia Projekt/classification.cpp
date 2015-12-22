@@ -23,7 +23,7 @@ namespace
 }
 
 classifier::classifier(const inria_cfg& c)
-	: cfg(c), model("R:/INRIAPerson/svm.dat")
+	: cfg(c)
 {		
 
 }
@@ -43,6 +43,11 @@ void classifier::train()
 {
 	std::cout << "starting training at: " << time_string() << std::endl;
 
+	SvmLightUtil::Parameters parameters;
+	parameters.kernel_type = SVM_LIGHT_LINEAR;
+	parameters.model_type = CLASSIFICATION;
+	parameters.svm_c = 0.01;
+
 	const auto negative_filenames = files_in_folder(cfg.negative_train_path());
 	const auto positive_filenames = files_in_folder(cfg.normalized_positive_train_path());
 	const auto vec_size = (long)hog::hog_size(cv::Rect(0, 0, mmp::sliding_window::width, mmp::sliding_window::height));
@@ -52,11 +57,11 @@ void classifier::train()
 
 	if (cfg.debug())
 		training_file.open(cfg.training_file(), std::ios::app);
-#if 0
+
 	//
 	// positives
 	//
-	
+
 	const unsigned sw_hog_length = sliding_window::width / hog::hog_cellsize;
 	const unsigned sw_hog_height = sliding_window::height / hog::hog_cellsize;
 	const unsigned y_offset = cfg.normalized_positive_training_y_offset(); // should be 16
@@ -136,15 +141,16 @@ void classifier::train()
 	// train svm
 	//
 
-	svm::model normal_model(negatives, positives, vec_size);
 	{
 		std::cout << std::endl << std::endl << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
-		normal_model.learn();
+		util.train(positives, negatives, vec_size, cfg.svm_file(), 1, parameters);
+		model = util.getModel(cfg.svm_file());
+		//model = svm::model(negatives, positives, vec_size);
 		std::cout << "done" << std::endl << std::endl;
 
-		normal_model.save(cfg.svm_file());
+		//model.save(cfg.svm_file());
 	}
-#endif
+
 	//
 	// hard mining (false positives)
 	//
@@ -165,7 +171,7 @@ void classifier::train()
 			for (auto window : scaled.sliding_windows())
 			{
 				svm::sparse_vector vec(window.features());
-				double a = model.classify(vec);	// classify takes very long...
+				double a = util.classify(vec, vec_size, model);//model.classify(vec);	// classify takes very long...
 				if (a > 0)
 					//hogs.emplace_back(a, std::move(vec));
 					hogs.push_back(std::move(vec));
@@ -175,20 +181,22 @@ void classifier::train()
 		//auto max = std::max_element(hogs.begin(), hogs.end(), hog_pair_comp);
 #pragma omp critical
 		{
+			//if (max != hogs.end())
+			//{
+			//	if (cfg.debug())
+			//		training_file << "-1 " << svm::to_string(max->second) << std::endl;
+
+			//	negatives.push_back(std::move(max->second));
+			//}
+
+
 			if (cfg.debug())
 			{
 				for (auto& hog : hogs)
 					training_file << "-1 " << svm::to_string(hog) << std::endl;
 			}
 
-			/*if (max != hogs.end())
-			{
-				if (cfg.debug())
-					training_file << "-1 " << svm::to_string(max->second) << std::endl;
-
-				negatives.push_back(std::move(max->second));
-			}*/
-			//std::move(hogs.begin(), hogs.end(), std::back_inserter(negatives));
+			std::move(hogs.begin(), hogs.end(), std::back_inserter(negatives));
 
 #pragma omp flush(processed)
 			print_progress("false positives processed", ++processed, negative_filenames.size(), filename);
@@ -199,14 +207,15 @@ void classifier::train()
 	// hard train svm
 	//
 
-	//{
-	//	svm::model hard_model(positives, negatives, vec_size);
-	//	std::cout << std::endl << std::endl << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
-	//	hard_model.learn();
-	//	std::cout << "done" << std::endl << "training finished at: " << time_string() << std::endl;
+	{
+		std::cout << std::endl << std::endl << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
+		//model = svm::model(positives, negatives, vec_size);
+		util.train(positives, negatives, vec_size, cfg.svm_file_hard(), 1, parameters);
+		model = util.getModel(cfg.svm_file_hard());
+		std::cout << "done" << std::endl << "training finished at: " << time_string() << std::endl;
 
-	//	hard_model.save(cfg.svm_file_hard());
-	//}
+		//model.save(cfg.svm_file_hard());
+	}
 
 	training_file.close();
 }
@@ -214,10 +223,12 @@ void classifier::train()
 double classifier::classify(const cv::Mat& mat) const
 {
 	svm::sparse_vector svec(mat);
-	return model.classify(svec);
+	return util.classify(svec, mat.rows * mat.cols * mat.channels(), model);
+	//return model.classify(svec);
 }
 
 void classifier::load(bool hard)
 {
-	model = svm::model(hard ? cfg.svm_file_hard() : cfg.svm_file());
+	//model = svm::model(hard ? cfg.svm_file_hard() : cfg.svm_file());
+	model = util.getModel(hard ? cfg.svm_file_hard() : cfg.svm_file());
 }

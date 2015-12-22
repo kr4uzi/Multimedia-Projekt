@@ -35,6 +35,8 @@ namespace mmp
 		std::shared_ptr<hog> _hog;
 
 	public:
+		cv::Mat ttt;
+
 		scaled_image(const scaled_image& rhs);
 		scaled_image(scaled_image&& rhs);
 		scaled_image(cv::Mat src, float scale);

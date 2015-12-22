@@ -83,11 +83,11 @@ void qualitative_evaluator::show_detections(classifier& c, annotation::file& ann
 
 		std::stringstream ss;
 		ss << "dist (" << std::setprecision(2) << d.second << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 12), cv::FONT_HERSHEY_PLAIN, 1, color);
+		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 12), cv::FONT_HERSHEY_PLAIN, 0.5, color);
 
 		ss.str(std::string());
 		ss << "overlap(" << std::setprecision(2) << max_overlap << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 24), cv::FONT_HERSHEY_PLAIN, 1, color);
+		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 24), cv::FONT_HERSHEY_PLAIN, 0.5, color);
 	}
 
 	for (auto& g : img.get_objects_boxes())

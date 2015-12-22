@@ -63,12 +63,14 @@ namespace mmp
 
 		private:
 			void * _model;
+			bool delete_svectors;
 			std::vector<void *> docs;
 			std::vector<double> targets;
 			svm::sparse_vector::size_type vec_size;
 
 		private:
 			void push_back_example(const svm::sparse_vector& svec, example_type type);
+			void learn();
 
 		public:
 			model& operator=(model&& rhs);
@@ -79,18 +81,18 @@ namespace mmp
 
 			template<class negatives_type, class positives_type>
 			model(const negatives_type& negatives, const positives_type& positives, svm::sparse_vector::size_type vec_size)
-				: vec_size(vec_size)
+				: vec_size(vec_size), delete_svectors(false)
 			{
 				docs.reserve(negatives.size() + positives.size());
 				targets.reserve(negatives.size() + positives.size());
 
 				for (auto& negative : negatives) { assert(negative.size() == vec_size); push_back_example(negative, example_type::negative); }
 				for (auto& positive : positives) { assert(positive.size() == vec_size); push_back_example(positive, example_type::positive); }
+				learn();
 			}
 
 			~model();
 
-			void learn();
 			double classify(const svm::sparse_vector& vec) const;
 			void save(const std::string& filename) const;
 		};
