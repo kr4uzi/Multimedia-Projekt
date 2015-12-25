@@ -16,6 +16,7 @@ namespace
 	cv::RNG rng = std::time(nullptr);
 
 	typedef std::pair<double, svm::sparse_vector> hog_pair;
+
 	bool hog_pair_comp(const hog_pair& a, const hog_pair& b)
 	{
 		return a.first > b.first;
@@ -39,52 +40,37 @@ classifier::~classifier()
 
 }
 
+
 void classifier::train()
 {
 	std::cout << "starting training at: " << time_string() << std::endl;
-
-	SvmLightUtil::Parameters parameters;
-	parameters.kernel_type = SVM_LIGHT_LINEAR;
-	parameters.model_type = CLASSIFICATION;
-	parameters.svm_c = 0.01;
-
+	
 	const auto negative_filenames = files_in_folder(cfg.negative_train_path());
 	const auto positive_filenames = files_in_folder(cfg.normalized_positive_train_path());
-	const auto vec_size = (long)hog::hog_size(cv::Rect(0, 0, mmp::sliding_window::width, mmp::sliding_window::height));
+	const auto vec_size = (svm::sparse_vector::size_type)hog::hog_size(cv::Rect(0, 0, mmp::sliding_window::width, mmp::sliding_window::height));
 	const auto hogs_per_negative = cfg.random_windows_per_negative_training_sample();
-	long processed = 0;
-	std::ofstream training_file;
-
-	if (cfg.debug())
-		training_file.open(cfg.training_file(), std::ios::app);
+	unsigned long processed = 0;
 
 	//
 	// positives
 	//
 
-	const unsigned sw_hog_length = sliding_window::width / hog::hog_cellsize;
-	const unsigned sw_hog_height = sliding_window::height / hog::hog_cellsize;
-	const unsigned y_offset = cfg.normalized_positive_training_y_offset(); // should be 16
-	const unsigned x_offset = cfg.normalized_positive_training_x_offset(); // should be 16
+	const cv::Rect positive_roi(
+		cfg.normalized_positive_training_x_offset(), cfg.normalized_positive_training_y_offset(), // both should be 16
+		sliding_window::width, sliding_window::height
+	);
 
 #pragma omp parallel for schedule(static)
 	for (long i = 0; i < positive_filenames.size(); i++)
 	{
-		auto& filename = positive_filenames[i];
-		hog hog(cv::imread(filename));
-		svm::sparse_vector svec(
-			hog(cv::Rect(x_offset, y_offset, sliding_window::width, sliding_window::height))
-		);
-
+		hog hog(cv::imread(positive_filenames[i])(positive_roi));
+		svm::sparse_vector svec(mat_to_svector(hog()));
 #pragma omp critical
 		{
-			if (cfg.debug())
-				training_file << "+1 " << svm::to_string(svec) << std::endl;
-
 			positives.push_back(std::move(svec));
 
 #pragma omp flush(processed)
-			print_progress("positives processed", ++processed, positive_filenames.size(), filename);
+			print_progress("positives processed", ++processed, positive_filenames.size(), positive_filenames[i]);
 		}
 	}
 	
@@ -101,7 +87,8 @@ void classifier::train()
 		auto& filename = negative_filenames[i];
 		image img(cv::imread(filename));
 		auto scaled = img.scaled_images();
-		std::vector<svm::sparse_vector> hogs;
+
+		std::vector<svm::sparse_vector> hogs;		
 		std::set<int> windows;
 
 		// 10 windows per negative image
@@ -119,17 +106,14 @@ void classifier::train()
 			auto id = scaled_num * 10 + sw_num;
 			if (windows.find(id) == windows.end())
 			{
-				svm::sparse_vector fvec(sliding_windows[sw_num].features());
+				svm::sparse_vector fvec(mat_to_svector(sliding_windows[sw_num].features()));
 				hogs.push_back(std::move(fvec));
 				windows.insert(id);
 			}
 		}
 
 #pragma omp critical
-		{
-			for (auto& svec : hogs)
-				training_file << "-1 " << svm::to_string(svec) << std::endl;
-
+		{			
 			std::move(hogs.begin(), hogs.end(), std::back_inserter(negatives));
 
 #pragma omp flush(processed)
@@ -143,18 +127,14 @@ void classifier::train()
 
 	{
 		std::cout << std::endl << std::endl << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
-		util.train(positives, negatives, vec_size, cfg.svm_file(), 1, parameters);
-		model = util.getModel(cfg.svm_file());
-		//model = svm::model(negatives, positives, vec_size);
-		std::cout << "done" << std::endl << std::endl;
-
-		//model.save(cfg.svm_file());
+		model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
+		model->save(cfg.svm_file());
+		std::cout << "done" << std::endl << std::endl;		
 	}
-
+	
 	//
 	// hard mining (false positives)
 	//
-
 	processed = 0;
 
 #pragma omp parallel for schedule(dynamic, 10)
@@ -163,15 +143,15 @@ void classifier::train()
 		auto& filename = negative_filenames[i];
 		image img(cv::imread(filename));
 
-		std::vector<svm::sparse_vector> hogs;
 		//std::vector<hog_pair> hogs;
+		std::vector<svm::sparse_vector> hogs;
 
 		for (auto scaled : img.scaled_images())
 		{
 			for (auto window : scaled.sliding_windows())
 			{
-				svm::sparse_vector vec(window.features());
-				double a = util.classify(vec, vec_size, model);//model.classify(vec);	// classify takes very long...
+				svm::sparse_vector vec(mat_to_svector(window.features()));
+				double a = model->classify(vec);	// classify takes very long...			
 				if (a > 0)
 					//hogs.emplace_back(a, std::move(vec));
 					hogs.push_back(std::move(vec));
@@ -181,23 +161,14 @@ void classifier::train()
 		//auto max = std::max_element(hogs.begin(), hogs.end(), hog_pair_comp);
 #pragma omp critical
 		{
-			//if (max != hogs.end())
-			//{
-			//	if (cfg.debug())
-			//		training_file << "-1 " << svm::to_string(max->second) << std::endl;
-
-			//	negatives.push_back(std::move(max->second));
-			//}
-
-
-			if (cfg.debug())
+			/*if (max != hogs.end())
 			{
-				for (auto& hog : hogs)
-					training_file << "-1 " << svm::to_string(hog) << std::endl;
-			}
+				if (cfg.debug())
+					training_file << "-1 " << svm::to_string(max->second) << std::endl;
 
+				negatives.push_back(std::move(max->second));
+			}*/
 			std::move(hogs.begin(), hogs.end(), std::back_inserter(negatives));
-
 #pragma omp flush(processed)
 			print_progress("false positives processed", ++processed, negative_filenames.size(), filename);
 		}
@@ -209,26 +180,66 @@ void classifier::train()
 
 	{
 		std::cout << std::endl << std::endl << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
-		//model = svm::model(positives, negatives, vec_size);
-		util.train(positives, negatives, vec_size, cfg.svm_file_hard(), 1, parameters);
-		model = util.getModel(cfg.svm_file_hard());
+		delete model;
+		model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
+		model->save(cfg.svm_file_hard());	
 		std::cout << "done" << std::endl << "training finished at: " << time_string() << std::endl;
-
-		//model.save(cfg.svm_file_hard());
 	}
-
-	training_file.close();
 }
 
 double classifier::classify(const cv::Mat& mat) const
 {
-	svm::sparse_vector svec(mat);
-	return util.classify(svec, mat.rows * mat.cols * mat.channels(), model);
-	//return model.classify(svec);
+	return model->classify(mat_to_svector(mat));
 }
 
 void classifier::load(bool hard)
 {
-	//model = svm::model(hard ? cfg.svm_file_hard() : cfg.svm_file());
-	model = util.getModel(hard ? cfg.svm_file_hard() : cfg.svm_file());
+	model = new svm::linear_model(hard ? cfg.svm_file_hard() : cfg.svm_file());	
+}
+
+svm::sparse_vector classifier::mat_to_svector(const cv::Mat& mat)
+{
+	//std::vector<float>::size_type i = 0;
+	//std::vector<float> data(mat.cols * mat.rows * mat.channels());
+
+	//for (int y = 0; y < mat.rows; y++)
+	//{
+	//	auto yptr = mat.ptr<float>(y);
+
+	//	for (int x = 0; x < mat.cols; x++)
+	//	{
+	//		for (int c = 0; c < mat.channels(); c++)
+	//			data[i++] = yptr[c];
+
+	//		yptr += mat.channels();
+	//	}
+	//}
+
+	//return svm::sparse_vector(data.begin(), data.end(), data.size());
+	assert(mat.channels() == hog::dimensions);
+	struct mat_iter
+	{
+		cv::MatConstIterator_<hog::vector_type> iter;
+		int c;
+
+		mat_iter(const cv::MatConstIterator_<hog::vector_type>& _iter) : c(0), iter(_iter) { }
+
+		float operator*() const { return (*iter)[c]; }
+		void operator++() 
+		{
+			if (++c % hog::dimensions == 0) 
+			{ 
+				++iter; 
+				c = 0; 
+			}
+		}
+
+		bool operator!=(const mat_iter& rhs) { return iter != rhs.iter; }
+	};
+
+	return svm::sparse_vector(
+		mat_iter(mat.begin<hog::vector_type>()), 
+		mat_iter(mat.end<hog::vector_type>()),
+		mat.rows * mat.cols * mat.channels()
+	);
 }

@@ -3,32 +3,36 @@
 #include <opencv2/core/core.hpp>	// Mat, Rect
 #include <vector>
 
+/*
+ * Task 1.3: extract hog features with variant UoCCTi
+ */
+
 namespace mmp
 {
 	class hog
 	{
 	public:
-		static const unsigned hog_cellsize = 8;
-		static const unsigned orientation_bins = 9;
-		typedef std::vector<float> array_type;
-
 		static const enum
 		{
 			DalalTriggs,
-			Uoctti
-		} hog_variant = Uoctti;
+			UoCCTi
+		} variant = UoCCTi;
+
+		static const unsigned cellsize = 8;
+		static const unsigned orientations = 9;
+		static const unsigned dimensions = (variant == UoCCTi) ? (4 + 3 * orientations) : (4 * orientations);
+
+		typedef std::vector<float> array_type;		
+		typedef cv::Vec<float, dimensions> vector_type;
 
 	private:
-		void * _hog;							// vl_hog
-		std::vector<float> hog_converted_data;	// hogarray converted to cv-order
-		cv::Mat hog_converted;					// cv::Mat view on this converted array
+		void * _hog;					// vl_hog
+		array_type hog_converted_data;	// hogarray converted to cv-order
+		cv::Mat hog_converted;	// cv::Mat view on this converted array
 
 		array_type::size_type hog_width;
 		array_type::size_type hog_height;
-		array_type::size_type hog_dimensions;
 		array_type::size_type hog_glyph_size;
-		int cells_per_row;
-		int cols;
 
 	public:
 		//
@@ -52,9 +56,11 @@ namespace mmp
 		hog(const cv::Mat& src);
 		~hog();
 
-		cv::Mat operator()(const cv::Rect& roi) const;
+		const cv::Mat operator()() const { return hog_converted; }
+		const cv::Mat operator()(const cv::Rect& roi) const;
+		
+		// renders whole hog
 		cv::Mat render() const;
-
 		// render a certain feature return by operator()
 		cv::Mat render(const cv::Mat& mat) const;
 	};

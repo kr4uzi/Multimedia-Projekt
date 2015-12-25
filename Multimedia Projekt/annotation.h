@@ -4,6 +4,10 @@
 #include <vector>
 #include <opencv2/core/core.hpp>	// Point, Rect, Vec3i
 
+/*
+ * Task 1.1: Read in ground truth boxes
+ */
+
 namespace mmp
 {
 	namespace annotation

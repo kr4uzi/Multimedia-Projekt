@@ -18,13 +18,13 @@
     <ClInclude Include="kernel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="svm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="svm_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="svm_learn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="svm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -36,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="svm_learn.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="svm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

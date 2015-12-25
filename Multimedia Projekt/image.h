@@ -1,8 +1,8 @@
 #pragma once
 #include <opencv2/core/core.hpp>	// Rect, Mat
 #include <vector>
-#include <utility>	// pair, move
-#include <memory>	// shared_ptr
+#include <utility>		// pair, move
+#include <memory>		// shared_ptr
 #include "extraction.h"
 
 namespace mmp
@@ -35,8 +35,6 @@ namespace mmp
 		std::shared_ptr<hog> _hog;
 
 	public:
-		cv::Mat ttt;
-
 		scaled_image(const scaled_image& rhs);
 		scaled_image(scaled_image&& rhs);
 		scaled_image(cv::Mat src, float scale);
@@ -46,6 +44,7 @@ namespace mmp
 		std::shared_ptr<const hog> get_hog() const { return std::const_pointer_cast<const hog>(_hog); }
 	};
 
+	class classifier;
 	class image
 	{
 	public:
@@ -64,6 +63,7 @@ namespace mmp
 		const std::vector<detection>& get_detections() const { return detections; }
 		void add_detection(const cv::Rect& rect, double weigth);
 		void suppress_non_maximum(float min_overlap = 0.2f);
+		void detect_all(const classifier& c);
 
 		const std::vector<scaled_image>& scaled_images() const { return images; }
 	};

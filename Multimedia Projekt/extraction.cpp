@@ -1,6 +1,5 @@
 #include "extraction.h"
 #include <vl/hog.h>
-#include "hog_util.h"
 using namespace mmp;
 
 hog::array_type hog::vlarray_to_cvstylevec(const array_type& vlarray, array_type::size_type height, array_type::size_type width, array_type::size_type dimensions)
@@ -43,6 +42,7 @@ hog::array_type hog::cvmat_to_vlarray(const cv::Mat& mat)
 
 hog::array_type hog::cvimg_to_vlarray(const cv::Mat& mat)
 {
+	assert((mat.type() == CV_8UC1 || mat.type() == CV_8UC3) && "input image type has to be unsigned char");
 	const int channels = mat.channels();
 
 	std::vector<float> vlarray(channels * mat.rows * mat.cols);
@@ -55,7 +55,7 @@ hog::array_type hog::cvimg_to_vlarray(const cv::Mat& mat)
 			auto yptr = mat.ptr<uchar>(y) + c;
 			for (int x = 0; x < mat.cols; x++)
 			{
-				*dataptr++ = *yptr / 255.f;
+				*dataptr++ = *yptr / 255.0f;
 				yptr += channels;
 			}
 		}
@@ -65,26 +65,20 @@ hog::array_type hog::cvimg_to_vlarray(const cv::Mat& mat)
 }
 
 hog::hog(const cv::Mat& src)
-	: _hog(vl_hog_new(VlHogVariant::VlHogVariantUoctti, orientation_bins, VL_FALSE))
+	: _hog(vl_hog_new(VlHogVariant::VlHogVariantUoctti, orientations, VL_FALSE))
 {
-	// RGB RGB RGB -> RRR GGG BBB
 	auto img_converted = cvimg_to_vlarray(src);
-
-	vl_hog_put_image((VlHog *)_hog, img_converted.data(), src.cols, src.rows, src.channels(), hog_cellsize);
+	vl_hog_put_image((VlHog *)_hog, img_converted.data(), src.cols, src.rows, src.channels(), cellsize);
 	hog_width = vl_hog_get_width((VlHog *)_hog);
 	hog_height = vl_hog_get_height((VlHog *)_hog);
-	hog_dimensions = vl_hog_get_dimension((VlHog *)_hog);
+	assert(dimensions == vl_hog_get_dimension((VlHog *)_hog));
 
-	std::vector<float> hog_array(hog_width * hog_height * hog_dimensions);
+	std::vector<float> hog_array(hog_width * hog_height * dimensions);
 	vl_hog_extract((VlHog *)_hog, hog_array.data());
 	hog_glyph_size = vl_hog_get_glyph_size((VlHog *)_hog);
 
-	hog_converted_data = vlarray_to_cvstylevec(hog_array, hog_height, hog_width, hog_dimensions);
-	// create cv::Mat view on hog_converted_data
-	hog_converted = cv::Mat((int)hog_height, (int)hog_width, CV_32FC(int(hog_dimensions)), hog_converted_data.data());
-	//hog_converted = convert_hog_array(hog_array.data(), 9, hog_width, hog_height, hog_width, hog_height);
-	//cells_per_row = src.cols / 8;
-	//cols = src.cols;
+	hog_converted_data = vlarray_to_cvstylevec(hog_array, hog_height, hog_width, dimensions);
+	hog_converted = cv::Mat((int)hog_height, (int)hog_width, CV_32FC(int(dimensions)), hog_converted_data.data());
 }
 
 hog::~hog()
@@ -94,13 +88,6 @@ hog::~hog()
 
 cv::Mat hog::render() const
 {
-	/*
-	std::vector<float> hog_array = cvmat_to_vlarray(hog_converted);
-	std::vector<float> img(hog_height * hog_glyph_size * hog_width * hog_glyph_size);
-	vl_hog_render((VlHog *)hog, img.data(), hog_array.data(), hog_width, hog_height);
-	auto image = cv::Mat(int(hog_glyph_size * hog_height), int(hog_glyph_size * hog_width), CV_32FC1, img.data());
-	return image.clone();
-	*/
 	return render(hog_converted);
 }
 
@@ -113,33 +100,19 @@ cv::Mat hog::render(const cv::Mat& mat) const
 	return image.clone();
 }
 
-cv::Mat hog::operator()(const cv::Rect& roi) const
+const cv::Mat hog::operator()(const cv::Rect& roi) const
 {
-	const int sub_x = (roi.x + hog_cellsize / 2) / hog_cellsize;
-	const int sub_y = (roi.y + hog_cellsize / 2) / hog_cellsize;
-	const int sub_height = (roi.height + hog_cellsize / 2) / hog_cellsize;
-	const int sub_width = (roi.width + hog_cellsize / 2) / hog_cellsize;
-	return hog_converted(cv::Rect(sub_x, sub_y, sub_width, sub_height));
-	//const int roi_hog_length = roi.width / hog_cellsize;
-	//const int roi_hog_height = roi.height / hog_cellsize;
-	//const int roi_offset = (roi.y / hog_cellsize) * cells_per_row + (roi.x / hog_cellsize);
-	//cv::Mat result(roi_hog_length * roi_hog_height, 31, CV_32FC1);
-	//for (int y = 0; y < 16; y++)
-	//{
-	//	for (int x = 0; x < 8; x++)
-	//		hog_converted.row(roi_offset + y * cells_per_row + x).copyTo(result.row(y * roi_hog_length + x));
-	//}
-
-	//return result;
+	const int from_x = (roi.x + cellsize / 2) / cellsize;
+	const int from_y = (roi.y + cellsize / 2) / cellsize;
+	const int to_x = ((roi.x + roi.width) + cellsize / 2) / cellsize;
+	const int to_y = ((roi.y + roi.height) + cellsize / 2) / cellsize;
+	return hog_converted(cv::Rect(cv::Point(from_x, from_y), cv::Point(to_x, to_y)));
 }
 
 std::size_t hog::hog_size(const cv::Rect& roi)
 {
-	const int height = (roi.height + hog_cellsize / 2) / hog_cellsize;
-	const int width = (roi.width + hog_cellsize / 2) / hog_cellsize;
+	const int height = (roi.height + cellsize / 2) / cellsize;
+	const int width = (roi.width + cellsize / 2) / cellsize;
 
-	if (hog_variant == Uoctti)
-		return (4 + 3 * orientation_bins) * height * width;
-	else
-		return (4 * orientation_bins) * height * width;
+	return dimensions * height * width;
 }

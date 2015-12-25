@@ -1,8 +1,9 @@
 #include "evaulation.h"
 #include "helpers.h"	// get_overlap, print_progress
+#include "classification.h"
 
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>	// RNG
 
 #ifdef WITH_MATLAB
 #include <engine.h>		// matlab
@@ -17,6 +18,11 @@
 #include <fstream>		// ofstream
 
 using namespace mmp;
+
+namespace
+{
+	cv::RNG rng = std::time(nullptr);
+}
 
 annotated_image::annotated_image(const annotation::file& annotation, cv::Mat src)
 	: image(src), annotation_file(annotation)
@@ -33,19 +39,6 @@ std::vector<cv::Rect> annotated_image::get_objects_boxes() const
 	return rects;
 }
 
-void annotated_image::detect_all(classifier& c)
-{
-	for (auto s : scaled_images())
-	{
-		for (auto sw : s.sliding_windows())
-		{
-			double a = c.classify(sw.features());
-			if (a > 0)
-				add_detection(sw.window(), a);
-		}
-	}
-}
-
 bool annotated_image::is_valid_detection(const cv::Rect& rect) const
 {
 	for (auto& r : annotation_file.get_objects())
@@ -57,64 +50,29 @@ bool annotated_image::is_valid_detection(const cv::Rect& rect) const
 	return false;
 }
 
-void qualitative_evaluator::show_detections(classifier& c, annotation::file& ann, cv::Mat src, const std::string& windowname)
-{
-	auto img = mmp::annotated_image(ann, src);
-	img.detect_all(c);
-	img.suppress_non_maximum();
-
-	for (auto& d : img.get_detections())
-	{
-		cv::Scalar color;
-
-		if (img.is_valid_detection(d.first))
-			cv::rectangle(src, d.first, color = cv::Scalar(0, 255, 0));
-		else
-			cv::rectangle(src, d.first, color = cv::Scalar(255, 0, 0));
-
-		float max_overlap = 0;
-		for (auto& g : img.get_objects_boxes())
-		{
-			auto temp = mmp::get_overlap(d.first, g);
-
-			if (temp > max_overlap)
-				max_overlap = temp;
-		}
-
-		std::stringstream ss;
-		ss << "dist (" << std::setprecision(2) << d.second << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 12), cv::FONT_HERSHEY_PLAIN, 0.5, color);
-
-		ss.str(std::string());
-		ss << "overlap(" << std::setprecision(2) << max_overlap << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 24), cv::FONT_HERSHEY_PLAIN, 0.5, color);
-	}
-
-	for (auto& g : img.get_objects_boxes())
-		cv::rectangle(src, g, cv::Scalar(0, 0, 255));
-
-	cv::imshow(windowname.empty() ? ann.get_image_filename() : windowname, src);
-}
-
-quantitative_evaluator::quantitative_evaluator(inria_cfg& cfg, classifier& c)
+quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const classifier& c)
 	: svm(c)
 {
 	std::cout << "starting evaluation at: " << time_string() << std::endl;
 
+	const auto positive_roi = cv::Rect(
+		cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
+		sliding_window::width, sliding_window::height
+	);
 	const auto positives = files_in_folder(cfg.normalized_positive_test_path());
 	const auto negatives = files_in_folder(cfg.negative_test_path());
 	const auto positives_train = files_in_folder(cfg.normalized_positive_train_path());
 	const auto negatives_train = files_in_folder(cfg.negative_train_path());
-	
-	//
-	// add positive detections (testing)
-	//
 	unsigned long processed = 0;
+
+	//
+	// add positive detections
+	//
 
 #pragma omp parallel for schedule(static)
 	for (long i = 0; i < positives.size(); i++)
 	{
-		image img(cv::imread(positives[i]));
+		image img(cv::imread(positives[i])(positive_roi));
 
 		double a = 0;
 		for (auto s : img.scaled_images())
@@ -260,4 +218,65 @@ void mat_plot::save(const std::string& filename) const
 	plot_file << "vl_det(labels, scores);" << std::endl;
 	plot_file << "axis([10^-6 10^-1 0.01 0.5]);" << std::endl;
 	plot_file.close();
+}
+
+qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const classifier& c, const classifier& c_hard)
+{
+	auto positives = mmp::files_in_folder(cfg.test_annotation_path());
+	std::cout << "close windows to stop randomly selecting a image for qualitative evaluation" << std::endl;
+
+	do
+	{
+		auto filename = positives[rng.uniform(0, (int)positives.size())];
+
+		mmp::annotation::file annotation;
+		auto parse_error = mmp::annotation::file::parse(filename, annotation);
+		if (!parse_error)
+		{
+			auto img = cv::imread(cfg.root_path() + annotation.get_image_filename());
+			mmp::qualitative_evaluator::show_detections(c, annotation, img, "normal classifier");
+			mmp::qualitative_evaluator::show_detections(c_hard, annotation, img, "hard classifier");
+		}
+		else
+			std::cout << "error parsing file: " << parse_error.error_msg() << std::endl;
+	} while (cv::waitKey() != -1);
+}
+
+void qualitative_evaluator::show_detections(const classifier& c, annotation::file& ann, cv::Mat src, const std::string& windowname)
+{
+	auto img = mmp::annotated_image(ann, src);
+	img.detect_all(c);
+	img.suppress_non_maximum();
+
+	for (auto& d : img.get_detections())
+	{
+		cv::Scalar color;
+
+		if (img.is_valid_detection(d.first))
+			cv::rectangle(src, d.first, color = cv::Scalar(0, 255, 0));
+		else
+			cv::rectangle(src, d.first, color = cv::Scalar(255, 0, 0));
+
+		float max_overlap = 0;
+		for (auto& g : img.get_objects_boxes())
+		{
+			auto temp = mmp::get_overlap(d.first, g);
+
+			if (temp > max_overlap)
+				max_overlap = temp;
+		}
+
+		std::stringstream ss;
+		ss << "dist (" << std::setprecision(2) << d.second << ")";
+		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 12), cv::FONT_HERSHEY_PLAIN, 0.5, color);
+
+		ss.str(std::string());
+		ss << "overlap(" << std::setprecision(2) << max_overlap << ")";
+		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 24), cv::FONT_HERSHEY_PLAIN, 0.5, color);
+	}
+
+	for (auto& g : img.get_objects_boxes())
+		cv::rectangle(src, g, cv::Scalar(0, 0, 255));
+
+	cv::imshow(windowname.empty() ? ann.get_image_filename() : windowname, src);
 }

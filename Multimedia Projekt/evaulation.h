@@ -1,14 +1,21 @@
 #pragma once
 #include "image.h"					// image
 #include "annotation.h"				// annotation::file
-#include "inria.h"					// inria_cfg
-#include "classification.h"			// classifier
+#include <opencv2/core/core.hpp>	// Rect, Mat
 #include <string>
 #include <vector>
-#include <opencv2/core/core.hpp>	// Rect, Mat
+
+/*
+ * Task 1.2: 
+ *  - mmp::annotated_image::is_valid_detection (ture if overlap with one ground truth box >= 50%)
+ *  - (helpers.h) mmp::get_overlap (overlap of two rectangles)
+ */
 
 namespace mmp
 {
+	class classifier;
+	class inria_cfg;
+
 	class annotated_image : public image
 	{
 	private:
@@ -19,7 +26,6 @@ namespace mmp
 
 		std::vector<cv::Rect> get_objects_boxes() const;
 		bool is_valid_detection(const cv::Rect& rect) const;
-		void detect_all(classifier& c);
 	};
 
 	class mat_plot
@@ -44,20 +50,22 @@ namespace mmp
 	class quantitative_evaluator
 	{
 	private:
-		classifier& svm;
+		const classifier& svm;
 		std::vector<double> labels;
 		std::vector<double> scores;
 
 	public:
-		quantitative_evaluator(inria_cfg& cfg, classifier& svm);
+		quantitative_evaluator(const inria_cfg& cfg, const classifier& svm);
 
-		const std::vector<double>& get_labels() const { return labels; }
-		const std::vector<double>& get_scores() const { return scores; }
+		std::vector<double> get_labels() const { return labels; }
+		std::vector<double> get_scores() const { return scores; }
 	};
 
 	class qualitative_evaluator
 	{
 	public:
-		static void show_detections(classifier& c, annotation::file& ann, cv::Mat img, const std::string& windowname = "");
+		qualitative_evaluator(const mmp::inria_cfg& cfg, const classifier& c_normal, const classifier& c_hard);
+
+		static void show_detections(const classifier& c, annotation::file& ann, cv::Mat img, const std::string& windowname = "");
 	};
 }

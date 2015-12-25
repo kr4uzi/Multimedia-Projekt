@@ -1,8 +1,8 @@
 #include "inria.h"
 using namespace mmp;
 
-inria_cfg::inria_cfg(const std::string& r, const std::string& s, const std::string& sh, const std::string& ev, const std::string& evh)
-	: root(r), svm_path_normal(s), svm_path_hard(sh), eval_file(ev), eval_file_hard(evh)
+inria_cfg::inria_cfg(const std::string& r, const std::string& s, const std::string& sh, const std::string& ev, const std::string& evh, double c)
+	: root(r), svm_path_normal(s), svm_path_hard(sh), eval_file(ev), eval_file_hard(evh), _svm_c(c)
 {
 
 }

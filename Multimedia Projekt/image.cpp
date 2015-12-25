@@ -2,6 +2,7 @@
 #include "helpers.h"
 #include "extraction.h"
 #include "scale_cache.h"
+#include "classification.h"
 #include <opencv2/imgproc/imgproc.hpp>	// resize
 #include <algorithm>					// sort, remove_if
 using namespace mmp;
@@ -23,24 +24,24 @@ cv::Rect sliding_window::window() const
 }
 
 scaled_image::scaled_image(const scaled_image& rhs)
-	: scale(rhs.scale), windows(rhs.windows), _hog(rhs._hog), ttt(rhs.ttt)
+	: scale(rhs.scale), windows(rhs.windows), _hog(rhs._hog)
 {
 
 }
 
 scaled_image::scaled_image(scaled_image&& rhs)
-	: scale(rhs.scale), windows(std::move(rhs.windows)), _hog(std::move(rhs._hog)), ttt(std::move(rhs.ttt))
+	: scale(rhs.scale), windows(std::move(rhs.windows)), _hog(std::move(rhs._hog))
 {
 
 }
 
 scaled_image::scaled_image(cv::Mat src, float scale)
-	: scale(scale), _hog(std::make_shared<hog>(src)), ttt(src.clone())
+	: scale(scale), _hog(std::make_shared<hog>(src))
 {
 	// sliding windows for current scale
-	for (int y = 0; y <= src.rows - sliding_window::height; y += hog::hog_cellsize)
+	for (int y = 0; y <= src.rows - sliding_window::height; y += hog::cellsize)
 	{
-		for (int x = 0; x <= src.cols - sliding_window::width; x += hog::hog_cellsize)
+		for (int x = 0; x <= src.cols - sliding_window::width; x += hog::cellsize)
 			windows.emplace_back(std::const_pointer_cast<const hog>(_hog), x, y, scale);
 	}
 }
@@ -106,6 +107,8 @@ void image::suppress_non_maximum(float min_overlap)
 	{
 		for (auto j = i + 1; j != detections.end(); j++)
 		{
+			if (j->second == 0) continue;
+
 			if (get_overlap(i->first, j->first) >= min_overlap)
 				j->second = 0; // mark entry for deletion
 		}
@@ -117,4 +120,17 @@ void image::suppress_non_maximum(float min_overlap)
 	};
 
 	detections.erase(std::remove_if(detections.begin(), detections.end(), marked_for_deletion), detections.end());
+}
+
+void image::detect_all(const classifier& c)
+{
+	for (auto s : scaled_images())
+	{
+		for (auto sw : s.sliding_windows())
+		{
+			double a = c.classify(sw.features());
+			if (a > 0)
+				add_detection(sw.window(), a);
+		}
+	}
 }

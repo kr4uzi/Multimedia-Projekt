@@ -11,9 +11,10 @@ namespace mmp
 		std::string svm_path_hard;
 		std::string eval_file;
 		std::string eval_file_hard;
+		double _svm_c;
 
 	public:
-		inria_cfg(const std::string& root, const std::string& svm_file, const std::string& svm_file_hard, const std::string& eval_file, const std::string& eval_file_hard);
+		inria_cfg(const std::string& root, const std::string& svm_file, const std::string& svm_file_hard, const std::string& eval_file, const std::string& eval_file_hard, double svm_c);
 
 		std::string svm_file() const;
 		std::string svm_file_hard() const;
@@ -37,6 +38,8 @@ namespace mmp
 		std::string negative_test_path() const;
 
 		bool debug() const { return true; }
+		double svm_c() const { return _svm_c; }
 		std::string training_file() const { return root + "/training_normal.dat"; }
+		std::string training_hard_file() const { return root + "/training_hard.dat"; }
 	};
 }
