@@ -234,8 +234,8 @@ qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const cl
 		if (!parse_error)
 		{
 			auto img = cv::imread(cfg.root_path() + annotation.get_image_filename());
-			mmp::qualitative_evaluator::show_detections(c, annotation, img, "normal classifier");
-			mmp::qualitative_evaluator::show_detections(c_hard, annotation, img, "hard classifier");
+			mmp::qualitative_evaluator::show_detections(c, annotation, img.clone(), "normal classifier");
+			mmp::qualitative_evaluator::show_detections(c_hard, annotation, img.clone(), "hard classifier");
 		}
 		else
 			std::cout << "error parsing file: " << parse_error.error_msg() << std::endl;
@@ -250,8 +250,9 @@ void qualitative_evaluator::show_detections(const classifier& c, annotation::fil
 
 	for (auto& d : img.get_detections())
 	{
-		cv::Scalar color;
+		cv::rectangle(src, cv::Rect(d.first.x, d.first.y, 82, 18), cv::Scalar(255, 255, 255), -1);
 
+		cv::Scalar color;
 		if (img.is_valid_detection(d.first))
 			cv::rectangle(src, d.first, color = cv::Scalar(0, 255, 0));
 		else
@@ -268,11 +269,11 @@ void qualitative_evaluator::show_detections(const classifier& c, annotation::fil
 
 		std::stringstream ss;
 		ss << "dist (" << std::setprecision(2) << d.second << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 12), cv::FONT_HERSHEY_PLAIN, 0.5, color);
+		cv::putText(src, ss.str(), cv::Point(d.first.x + 3, d.first.y + 9), cv::FONT_HERSHEY_PLAIN, 0.7, color);
 
 		ss.str(std::string());
 		ss << "overlap(" << std::setprecision(2) << max_overlap << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 6, d.first.y + 24), cv::FONT_HERSHEY_PLAIN, 0.5, color);
+		cv::putText(src, ss.str(), cv::Point(d.first.x + 3, d.first.y + 18), cv::FONT_HERSHEY_PLAIN, 0.7, color);
 	}
 
 	for (auto& g : img.get_objects_boxes())

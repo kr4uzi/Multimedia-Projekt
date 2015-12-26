@@ -1,6 +1,6 @@
 #include "annotation.h"
 #include <fstream>		// ifstream
-#include <algorithm>	// find_if
+#include <algorithm>	// find_if, remove
 #include <regex>		// regex_match
 
 using namespace mmp::annotation;

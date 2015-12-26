@@ -2,25 +2,18 @@
 #include "image.h"
 #include "extraction.h"
 #include "helpers.h"
+#include <boost/bind.hpp>
 #include <opencv2/highgui/highgui.hpp>	// imread
 #include <utility>		// pair, move
 #include <iostream>		// cout, endl
 #include <ctime>		// time
 #include <iterator>		// back_inserter
 #include <set>
-#include <fstream>
 using namespace mmp;
 
 namespace
 {
 	cv::RNG rng = std::time(nullptr);
-
-	typedef std::pair<double, svm::sparse_vector> hog_pair;
-
-	bool hog_pair_comp(const hog_pair& a, const hog_pair& b)
-	{
-		return a.first > b.first;
-	}
 }
 
 classifier::classifier(const inria_cfg& c)
@@ -136,15 +129,15 @@ void classifier::train()
 	// hard mining (false positives)
 	//
 	processed = 0;
+	typedef std::pair<double, svm::sparse_vector> hog_pair;
+	std::deque<hog_pair> false_positives;
 
 #pragma omp parallel for schedule(dynamic, 10)
 	for (long i = 0; i < negative_filenames.size(); i++)
 	{
 		auto& filename = negative_filenames[i];
 		image img(cv::imread(filename));
-
-		//std::vector<hog_pair> hogs;
-		std::vector<svm::sparse_vector> hogs;
+		std::vector<hog_pair> hogs;
 
 		for (auto scaled : img.scaled_images())
 		{
@@ -153,26 +146,24 @@ void classifier::train()
 				svm::sparse_vector vec(mat_to_svector(window.features()));
 				double a = model->classify(vec);	// classify takes very long...			
 				if (a > 0)
-					//hogs.emplace_back(a, std::move(vec));
-					hogs.push_back(std::move(vec));
+					hogs.emplace_back(a, std::move(vec));
 			}
 		}
 
-		//auto max = std::max_element(hogs.begin(), hogs.end(), hog_pair_comp);
+		
 #pragma omp critical
 		{
-			/*if (max != hogs.end())
-			{
-				if (cfg.debug())
-					training_file << "-1 " << svm::to_string(max->second) << std::endl;
+			std::move(hogs.begin(), hogs.end(), std::back_inserter(false_positives));
 
-				negatives.push_back(std::move(max->second));
-			}*/
-			std::move(hogs.begin(), hogs.end(), std::back_inserter(negatives));
 #pragma omp flush(processed)
 			print_progress("false positives processed", ++processed, negative_filenames.size(), filename);
 		}
 	}
+
+	std::sort(false_positives.begin(), false_positives.end(), boost::bind(&hog_pair::first, _1) > boost::bind(&hog_pair::first, _2));
+	unsigned num = 0;
+	for (auto i = false_positives.begin(); i != false_positives.end() && num < cfg.num_hard_false_positive_retrain(); ++i)
+		negatives.push_back(std::move(i->second));
 
 	//
 	// hard train svm
@@ -189,6 +180,7 @@ void classifier::train()
 
 double classifier::classify(const cv::Mat& mat) const
 {
+	if (!model) throw std::exception("classifier not loaded or trained");
 	return model->classify(mat_to_svector(mat));
 }
 

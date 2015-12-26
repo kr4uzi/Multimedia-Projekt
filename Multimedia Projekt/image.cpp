@@ -103,9 +103,9 @@ void image::suppress_non_maximum(float min_overlap)
 {
 	std::sort(detections.begin(), detections.end(), [](const detection& a, const detection& b) { return a.second > b.second; });
 
-	for (auto i = detections.begin(); i != detections.end(); i++)
+	for (auto i = detections.begin(); i != detections.end(); ++i)
 	{
-		for (auto j = i + 1; j != detections.end(); j++)
+		for (auto j = i + 1; j != detections.end(); ++j)
 		{
 			if (j->second == 0) continue;
 

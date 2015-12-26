@@ -4,6 +4,7 @@ extern "C" {
 #include "svm_learn.h"
 }
 #include <cstring>		// strcpy
+#include <algorithm>	// swap
 using namespace svm;
 
 namespace
@@ -77,6 +78,15 @@ void sparse_vector::svector_init(void ** svector, const std::vector<sparse_vecto
 	*words_end = end;
 }
 
+sparse_vector& sparse_vector::operator=(sparse_vector&& rhs)
+{
+	_size = rhs._size;
+	_svector = rhs._svector;
+	_words_end = rhs._words_end;
+	rhs._svector = rhs._words_end = nullptr;
+	return *this;
+}
+
 sparse_vector::sparse_vector(const sparse_vector& rhs)
 	: _size(rhs._size)
 {
@@ -145,7 +155,7 @@ void svm::linear_model::model_init(void ** model, std::vector<void *>& docs, std
 	MODEL * mod = (MODEL *)malloc(sizeof(MODEL));
 	svm_learn_classification((DOC **)docs.data(), targets.data(), (long)docs.size(), vec_size, &learn_param, &kernel_param, nullptr, mod, nullptr);
 	add_weight_vector_to_linear_model(mod);
-	// copy the model so we have own a copy of the support vectors
+	// copy the model so we have our own copy of the support vectors
 	*model = copy_model(mod);
 
 	free_model(mod, 0);

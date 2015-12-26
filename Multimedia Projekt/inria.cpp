@@ -1,8 +1,8 @@
 #include "inria.h"
 using namespace mmp;
 
-inria_cfg::inria_cfg(const std::string& r, const std::string& s, const std::string& sh, const std::string& ev, const std::string& evh, double c)
-	: root(r), svm_path_normal(s), svm_path_hard(sh), eval_file(ev), eval_file_hard(evh), _svm_c(c)
+inria_cfg::inria_cfg(const std::string& r, const std::string& s, const std::string& sh, const std::string& ev, const std::string& evh, double c, unsigned num_false_positives_training)
+	: root(r), svm_path_normal(s), svm_path_hard(sh), eval_file(ev), eval_file_hard(evh), _svm_c(c), num_fps(num_false_positives_training)
 {
 
 }
@@ -24,4 +24,8 @@ unsigned inria_cfg::normalized_positive_training_y_offset() const { return 16; }
 unsigned inria_cfg::normalized_positive_training_x_offset() const { return 16; }
 unsigned inria_cfg::normalized_positive_test_y_offset() const { return 3; }
 unsigned inria_cfg::normalized_positive_test_x_offset() const { return 3; }
-unsigned inria_cfg::random_windows_per_negative_training_sample() const { return 10; }
+unsigned inria_cfg::random_windows_per_negative_training_sample() const { return num_fps; }
+double inria_cfg::svm_c() const { return _svm_c; }
+std::string inria_cfg::training_file() const { return root + "/training_normal.dat"; }
+std::string inria_cfg::training_hard_file() const { return root + "/training_hard.dat"; }
+unsigned inria_cfg::num_hard_false_positive_retrain() const { return 1280; }

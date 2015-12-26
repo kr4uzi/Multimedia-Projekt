@@ -1,4 +1,5 @@
 #include <opencv2/opencv.hpp>	// imread, waitKey
+#include "config.h"				// config
 #include "inria.h"				// inria_cfg
 #include "helpers.h"			// files_in_folder
 #include "classification.h"		// classifier
@@ -8,18 +9,18 @@
 #include <cstdlib>				// system
 #include <iostream>				// cout, endl
 #include <thread>
-#include <condition_variable>
 
-int main()
+int main(int argc, char ** argv)
 {
 	std::cout << "MMP Markus Kraus" << std::endl;
 	std::cout << "started at: " << mmp::time_string() << std::endl << std::endl;
 
 	mmp::inria_cfg cfg(
-		"R:/INRIAPerson/", 
-		"R:/INRIAPerson/svm.dat", "R:/INRIAPerson/svm_hard.dat",
-		"R:/INRIAPerson/evaluation.m", "R:/INRIAPerson/evaluation_hard.m",
-		0.01
+		"R:/INRIAPerson/", // INRIA root
+		"R:/INRIAPerson/svm.dat", "R:/INRIAPerson/svm_hard.dat",	// svm files
+		"R:/INRIAPerson/evaluation.m", "R:/INRIAPerson/evaluation_hard.m",	// evaluation files
+		0.01,	// svm_c
+		1280	// number of false positives added to training the hard 
 	);
 
 	// train
@@ -34,7 +35,6 @@ int main()
 	mmp::classifier c_hard(cfg);
 
 	std::cout << "loading svm files ..." << std::endl;
-
 	std::thread thn([&c_normal]() { c_normal.load(); });
 	std::thread thh([&c_hard]() { c_hard.load(true); });
 
@@ -55,11 +55,10 @@ int main()
 	plot_hard.show("hard evaluation");
 	plot_hard.save(cfg.evaluation_file_hard());
 
-	// qualitative evaluation
+	//// qualitative evaluation
 	std::cout << std::endl << "qualitataive evaluation . . ." << std::endl;
 	mmp::qualitative_evaluator(cfg, c_normal, c_hard);
 	std::cout << "qualitiative evaluation terminated" << std::endl;
-
 
 	std::cout << std::endl;
 	std::cout << "finished at: " << mmp::time_string() << std::endl;

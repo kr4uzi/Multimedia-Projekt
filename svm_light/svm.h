@@ -40,6 +40,7 @@ namespace svm
 	public:
 		sparse_vector(const sparse_vector& rhs);
 		sparse_vector(sparse_vector&& rhs);
+		sparse_vector& operator=(sparse_vector&& rhs);
 
 		template<class T>
 		sparse_vector(T begin, T end, size_type size)

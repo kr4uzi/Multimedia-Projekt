@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="annotation.h" />
     <ClInclude Include="classification.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="evaulation.h" />
     <ClInclude Include="extraction.h" />
     <ClInclude Include="helpers.h" />
@@ -23,6 +24,7 @@
   <ItemGroup>
     <ClCompile Include="annotation.cpp" />
     <ClCompile Include="classification.cpp" />
+    <ClCompile Include="config.cpp" />
     <ClCompile Include="evaluation.cpp" />
     <ClCompile Include="extraction.cpp" />
     <ClCompile Include="helpers.cpp" />
