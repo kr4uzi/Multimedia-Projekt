@@ -1,13 +1,18 @@
 #include "helpers.h"
+#include "log.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <chrono>	// now, to_time_t
 #include <ctime>	// localtime
-#include <iostream>	// cout
 #include <iomanip>	// put_time
 #include <sstream>	// stringstream
+
+bool mmp::path_exists(const std::string& path)
+{
+	return boost::filesystem::exists(path);
+}
 
 std::vector<std::string> mmp::files_in_folder(const std::string& folder)
 {
@@ -53,7 +58,7 @@ void mmp::print_progress(const std::string& info, unsigned long value, std::size
 
 		if (message.size() + filename.size() + 3 >= line_length - 1)	// "<message> (<filename>)"
 		{
-			filename.resize(line_length - 1 - message.size() - 6);			// "<message> (<file...>)"
+			filename.resize(line_length - 1 - message.size() - 6);		// "<message> (<file...>)"
 			filename += "...";
 		}
 
@@ -65,7 +70,10 @@ void mmp::print_progress(const std::string& info, unsigned long value, std::size
 	// fill with whitespaces to overwrite previous long message (carriage return)
 	message.resize(line_length - 1, ' ');
 
-	std::cout << message << "\r";
+	if (value == max)
+		log << to::both << message << std::endl;
+	else
+		log << to::console << message << "\r";
 }
 
 std::string mmp::time_string()
@@ -74,6 +82,6 @@ std::string mmp::time_string()
 	auto now = system_clock::now();
 	auto now_t = std::chrono::system_clock::to_time_t(now);
 	std::stringstream ss;
-	ss << std::put_time(std::localtime(&now_t), "%Y-%m-%d %X");
+	ss << std::put_time(std::localtime(&now_t), "%F %X");
 	return ss.str();
 }

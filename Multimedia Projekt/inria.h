@@ -12,6 +12,7 @@ namespace mmp
 		std::string eval_file;
 		std::string eval_file_hard;
 		double _svm_c;
+		unsigned num_rngs;
 		unsigned num_fps;
 
 	public:
@@ -20,6 +21,7 @@ namespace mmp
 			const std::string& svm_file, const std::string& svm_file_hard, 
 			const std::string& eval_file, const std::string& eval_file_hard, 
 			double svm_c,
+			unsigned num_rng_windows_per_neg_sample,
 			unsigned num_false_positives_training);
 
 		std::string svm_file() const;

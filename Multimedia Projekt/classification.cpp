@@ -2,10 +2,10 @@
 #include "image.h"
 #include "extraction.h"
 #include "helpers.h"
+#include "log.h"
 #include <boost/bind.hpp>
 #include <opencv2/highgui/highgui.hpp>	// imread
 #include <utility>		// pair, move
-#include <iostream>		// cout, endl
 #include <ctime>		// time
 #include <iterator>		// back_inserter
 #include <set>
@@ -36,7 +36,7 @@ classifier::~classifier()
 
 void classifier::train()
 {
-	std::cout << "starting training at: " << time_string() << std::endl;
+	log << to::both << "starting training at: " << time_string() << std::endl;
 	
 	const auto negative_filenames = files_in_folder(cfg.negative_train_path());
 	const auto positive_filenames = files_in_folder(cfg.normalized_positive_train_path());
@@ -71,7 +71,6 @@ void classifier::train()
 	// negatives
 	//
 
-	std::cout << std::endl;
 	processed = 0;
 
 #pragma omp parallel for schedule(dynamic, 50)
@@ -119,10 +118,10 @@ void classifier::train()
 	//
 
 	{
-		std::cout << std::endl << std::endl << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
+		log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
 		model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
 		model->save(cfg.svm_file());
-		std::cout << "done" << std::endl << std::endl;		
+		log << "done" << std::endl << std::endl;		
 	}
 	
 	//
@@ -170,11 +169,11 @@ void classifier::train()
 	//
 
 	{
-		std::cout << std::endl << std::endl << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
+		log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
 		delete model;
 		model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
 		model->save(cfg.svm_file_hard());	
-		std::cout << "done" << std::endl << "training finished at: " << time_string() << std::endl;
+		log << "done" << std::endl << "training finished at: " << time_string() << std::endl;
 	}
 }
 

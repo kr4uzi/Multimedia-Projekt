@@ -39,7 +39,9 @@ namespace mmp
 		std::vector<double> scores_data;
 		
 	public:
+		mat_plot();
 		mat_plot(mat_plot &&rhs);
+		mat_plot& operator=(mat_plot&& rhs);
 		mat_plot(const std::vector<double>& labels, const std::vector<double>& scores);
 		~mat_plot();
 

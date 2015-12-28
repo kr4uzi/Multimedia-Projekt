@@ -19,6 +19,7 @@
     <ClInclude Include="helpers.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="inria.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="scale_cache.h" />
   </ItemGroup>
   <ItemGroup>
@@ -30,6 +31,7 @@
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="inria.cpp" />
+    <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scale_cache.cpp" />
   </ItemGroup>

@@ -1,6 +1,7 @@
 #include "evaulation.h"
 #include "helpers.h"	// get_overlap, print_progress
 #include "classification.h"
+#include "log.h"
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>	// RNG
@@ -10,9 +11,9 @@
 #include <cstring>		// memcpy
 #endif
 
+#include <algorithm>	// swap
 #include <utility>		// move
 #include <ctime>		// time
-#include <iostream>		// cout, endl
 #include <iomanip>		// setprecision
 #include <sstream>		// stringstream
 #include <fstream>		// ofstream
@@ -53,7 +54,7 @@ bool annotated_image::is_valid_detection(const cv::Rect& rect) const
 quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const classifier& c)
 	: svm(c)
 {
-	std::cout << "starting evaluation at: " << time_string() << std::endl;
+	log << to::both << "starting evaluation at: " << time_string() << std::endl;
 
 	const auto positive_roi = cv::Rect(
 		cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
@@ -104,7 +105,6 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	// add negative detections
 	//
 
-	std::cout << std::endl;
 	processed = 0;
 
 #pragma omp parallel for schedule(dynamic)
@@ -137,7 +137,13 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 		}
 	}
 
-	std::cout << std::endl << "evaluation finished at: " << time_string() << std::endl;
+	log << to::both << "evaluation finished at: " << time_string() << std::endl;
+}
+
+mat_plot::mat_plot()
+	: engine(nullptr), labels(nullptr), scores(nullptr)
+{
+
 }
 
 mat_plot::mat_plot(const std::vector<double>& lbls, const std::vector<double>& scrs)
@@ -174,6 +180,16 @@ mat_plot::mat_plot(mat_plot&& rhs)
 	: engine(rhs.engine), labels(rhs.labels), scores(rhs.scores), labels_data(std::move(rhs.labels_data)), scores_data(std::move(rhs.scores_data))
 {
 	rhs.engine = rhs.labels = rhs.scores = nullptr;
+}
+
+mat_plot& mat_plot::operator=(mat_plot&& rhs)
+{
+	this->~mat_plot();
+	labels = scores = engine = nullptr;
+	std::swap(engine, rhs.engine);
+	std::swap(labels, rhs.labels);
+	std::swap(scores, rhs.scores);
+	return *this;
 }
 
 mat_plot::~mat_plot()
@@ -223,7 +239,7 @@ void mat_plot::save(const std::string& filename) const
 qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const classifier& c, const classifier& c_hard)
 {
 	auto positives = mmp::files_in_folder(cfg.test_annotation_path());
-	std::cout << "close windows to stop randomly selecting a image for qualitative evaluation" << std::endl;
+	log << to::console << "close windows to stop randomly selecting a image for qualitative evaluation" << std::endl;
 
 	do
 	{
@@ -238,7 +254,7 @@ qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const cl
 			mmp::qualitative_evaluator::show_detections(c_hard, annotation, img.clone(), "hard classifier");
 		}
 		else
-			std::cout << "error parsing file: " << parse_error.error_msg() << std::endl;
+			log << to::both << "error parsing file: " << parse_error.error_msg() << std::endl;
 	} while (cv::waitKey() != -1);
 }
 

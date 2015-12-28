@@ -1,67 +1,115 @@
-#include <opencv2/opencv.hpp>	// imread, waitKey
 #include "config.h"				// config
 #include "inria.h"				// inria_cfg
-#include "helpers.h"			// files_in_folder
+#include "helpers.h"			// files_in_folder, path_exists
 #include "classification.h"		// classifier
 #include "annotation.h"			// annotation::file
 #include "evaulation.h"			// qualitative_evaluator, quantitative_evaluator, mat_plot
+#include "log.h"
 #include <ctime>				// time
 #include <cstdlib>				// system
-#include <iostream>				// cout, endl
+#include <iostream>				// endl
 #include <thread>
 
 int main(int argc, char ** argv)
 {
-	std::cout << "MMP Markus Kraus" << std::endl;
-	std::cout << "started at: " << mmp::time_string() << std::endl << std::endl;
-
-	mmp::inria_cfg cfg(
-		"R:/INRIAPerson/", // INRIA root
-		"R:/INRIAPerson/svm.dat", "R:/INRIAPerson/svm_hard.dat",	// svm files
-		"R:/INRIAPerson/evaluation.m", "R:/INRIAPerson/evaluation_hard.m",	// evaluation files
-		0.01,	// svm_c
-		1280	// number of false positives added to training the hard 
-	);
-
-	// train
+	mmp::inria_cfg cfg;
+	std::string cfg_path = "mmp.cfg";
+	if (argc > 1)
 	{
-		mmp::classifier c(cfg);
-		c.train();
+		if (mmp::path_exists(argv[1]))
+			cfg_path = argv[1];
+		else
+		{
+			mmp::log << "config file [" << argv[1] << "] not existing!" << std::endl;
+			mmp::log << "falling back to [mmp.cfg]" << std::endl;
+		}
 	}
 
-	std::cout << std::endl;
+	if (!mmp::path_exists(cfg_path))
+	{
+		mmp::log << "could not find a config file" << std::endl;
+		return 1;
+	}
+
+	mmp::config raw_cfg;
+	auto error = mmp::config::parse(cfg_path, raw_cfg);
+	if (!!error)
+	{
+		mmp::log << "error parsing [" << cfg_path << "]: " << error.error_msg() << std::endl;
+		return 1;
+	}
+
+	std::string required[] = { "root", "svm", "svm_hard", "eval", "eval_hard" };
+	for (auto& key : required)
+	{
+		if (!raw_cfg.exists(key))
+		{
+			mmp::log << "[" << key << "] is a required config key!" << std::endl;
+			return 1;
+		}
+	}
+
+	cfg = mmp::inria_cfg(
+		raw_cfg.get_string("root"),
+		raw_cfg.get_string("svm"), raw_cfg.get_string("svm_hard"),
+		raw_cfg.get_string("eval"), raw_cfg.get_string("eval_hard"),
+		raw_cfg.get_double("svm_c", 0.01),
+		raw_cfg.get_unsinged("randoms_per_negative", 10),
+		raw_cfg.get_unsinged("num_false_positives", 1280)
+	);
+
+	mmp::log << "MMP Markus Kraus" << std::endl;
+	mmp::log << "started at: " << mmp::time_string() << std::endl << std::endl;
+
+	// train
+	if (!raw_cfg.get_bool("skip_training"))
+	{
+		mmp::classifier(cfg).train();
+		mmp::log << mmp::to::both << std::endl;
+	}
 
 	mmp::classifier c_normal(cfg);
 	mmp::classifier c_hard(cfg);
 
-	std::cout << "loading svm files ..." << std::endl;
-	std::thread thn([&c_normal]() { c_normal.load(); });
-	std::thread thh([&c_hard]() { c_hard.load(true); });
+	// load svm_files
+	{
+		mmp::log << "loading svm files ..." << std::endl;
+		std::thread thn([&c_normal]() { c_normal.load(); });
+		std::thread thh([&c_hard]() { c_hard.load(true); });
 
-	thn.join();
-	std::cout << cfg.svm_file() << " loaded" << std::endl;
-	thh.join();
-	std::cout << cfg.svm_file_hard() << " loaded" << std::endl;
+		thn.join();
+		mmp::log << cfg.svm_file() << " loaded" << std::endl;
+		thh.join();
+		mmp::log << cfg.svm_file_hard() << " loaded" << std::endl;
+	}
 
 	// quantitative evaluation
-	mmp::quantitative_evaluator eval(cfg, c_normal);
-	mmp::mat_plot plot(eval.get_labels(), eval.get_scores());
-	plot.show("evaluation");
-	plot.save(cfg.evaluation_file());
+	mmp::mat_plot plot;
+	if (!raw_cfg.get_bool("skip_eval"))
+	{
+		mmp::quantitative_evaluator eval(cfg, c_normal);
+		plot = mmp::mat_plot(eval.get_labels(), eval.get_scores());
+		plot.show("evaluation");
+		plot.save(cfg.evaluation_file());
+	}
 
 	// quantitative evaluation with hard negative samples
-	mmp::quantitative_evaluator eval_hard(cfg, c_hard);
-	mmp::mat_plot plot_hard(eval_hard.get_labels(), eval_hard.get_scores());
-	plot_hard.show("hard evaluation");
-	plot_hard.save(cfg.evaluation_file_hard());
+	mmp::mat_plot plot_hard;
+	if (!raw_cfg.get_bool("skip_hard_eval"))
+	{
+		mmp::quantitative_evaluator eval_hard(cfg, c_hard);
+		plot_hard = mmp::mat_plot(eval_hard.get_labels(), eval_hard.get_scores());
+		plot_hard.show("hard evaluation");
+		plot_hard.save(cfg.evaluation_file_hard());
+	}
 
-	//// qualitative evaluation
-	std::cout << std::endl << "qualitataive evaluation . . ." << std::endl;
-	mmp::qualitative_evaluator(cfg, c_normal, c_hard);
-	std::cout << "qualitiative evaluation terminated" << std::endl;
+	// qualitative evaluation
+	{
+		mmp::log << mmp::to::console << std::endl << "qualitataive evaluation . . ." << std::endl;
+		mmp::qualitative_evaluator(cfg, c_normal, c_hard);
+		mmp::log << mmp::to::console << "qualitiative evaluation terminated" << std::endl;
+	}
 
-	std::cout << std::endl;
-	std::cout << "finished at: " << mmp::time_string() << std::endl;
-	std::cout << "press enter to exit" << std::endl;
-	std::system("pause");
+	mmp::log << mmp::to::both << std::endl;
+	mmp::log << "finished at: " << mmp::time_string() << std::endl;
 }

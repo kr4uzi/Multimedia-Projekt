@@ -42,27 +42,46 @@ config::parse_error config::parse(const std::string& filename, config& cfg)
 
 		in.close();
 	}
+
+	return parse_error("");
 }
 
 bool config::exists(const std::string& key) const
 {
-	return cfg.find(key) == cfg.end();
+	return cfg.find(key) != cfg.end();
 }
 
-std::string config::get(const std::string& key, const std::string& default_value) const
+std::string config::get_string(const std::string& key, const std::string& default_value) const
 {
 	if (!exists(key)) return default_value;
 	return cfg.find(key)->second;
 }
 
-double config::get(const std::string& key, double default_value) const
+double config::get_double(const std::string& key, double default_value) const
 {
 	if (!exists(key)) return default_value;
 	return std::stod(cfg.find(key)->second);
 }
 
-unsigned config::get(const std::string& key, unsigned default_value) const
+unsigned config::get_unsinged(const std::string& key, unsigned default_value) const
 {
 	if (!exists(key)) return default_value;
 	return std::stoul(cfg.find(key)->second);
+}
+
+signed config::get_signed(const std::string& key, signed default_value) const
+{
+	if (!exists(key)) return default_value;
+	return std::stol(cfg.find(key)->second);
+}
+
+bool config::get_bool(const std::string& key, bool default_value) const
+{
+	if (!exists(key)) return default_value;
+
+	auto value = cfg.find(key)->second;
+	if (value == "True" || value == "true" || value == "1")
+		return true;
+	
+	return false;
 }

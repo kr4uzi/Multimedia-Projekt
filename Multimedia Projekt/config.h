@@ -29,8 +29,10 @@ namespace mmp
 
 		bool exists(const std::string& key) const;
 
-		std::string get(const std::string& key, const std::string& default_value = "") const;
-		double get(const std::string& key, double default_value = 0) const;
-		unsigned get(const std::string& key, unsigned default_value = 0) const;
+		std::string get_string(const std::string& key, const std::string& default_value = "") const;
+		double get_double(const std::string& key, double default_value = 0) const;
+		unsigned get_unsinged(const std::string& key, unsigned default_value = 0) const;
+		signed get_signed(const std::string& key, signed default_value = 0) const;
+		bool get_bool(const std::string& key, bool default_value = false) const;
 	};
 }
