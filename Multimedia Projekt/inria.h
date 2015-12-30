@@ -16,7 +16,7 @@ namespace mmp
 		unsigned num_fps;
 
 	public:
-		inria_cfg() = default;
+		inria_cfg();
 		inria_cfg(const std::string& root, 
 			const std::string& svm_file, const std::string& svm_file_hard, 
 			const std::string& eval_file, const std::string& eval_file_hard, 

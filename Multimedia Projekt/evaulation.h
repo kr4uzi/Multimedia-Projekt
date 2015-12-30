@@ -5,12 +5,6 @@
 #include <string>
 #include <vector>
 
-/*
- * Task 1.2: 
- *  - mmp::annotated_image::is_valid_detection (ture if overlap with one ground truth box >= 50%)
- *  - (helpers.h) mmp::get_overlap (overlap of two rectangles)
- */
-
 namespace mmp
 {
 	class classifier;

@@ -129,7 +129,7 @@ void classifier::train()
 	//
 	processed = 0;
 	typedef std::pair<double, svm::sparse_vector> hog_pair;
-	std::deque<hog_pair> false_positives;
+	std::vector<hog_pair> false_positives;
 
 #pragma omp parallel for schedule(dynamic, 10)
 	for (long i = 0; i < negative_filenames.size(); i++)
@@ -153,16 +153,17 @@ void classifier::train()
 #pragma omp critical
 		{
 			std::move(hogs.begin(), hogs.end(), std::back_inserter(false_positives));
+			std::sort(false_positives.begin(), false_positives.end(), boost::bind(&hog_pair::first, _1) > boost::bind(&hog_pair::first, _2));
+			if (false_positives.size() > cfg.num_hard_false_positive_retrain())
+				false_positives.erase(false_positives.begin() + cfg.num_hard_false_positive_retrain(), false_positives.end());
 
 #pragma omp flush(processed)
 			print_progress("false positives processed", ++processed, negative_filenames.size(), filename);
 		}
 	}
 
-	std::sort(false_positives.begin(), false_positives.end(), boost::bind(&hog_pair::first, _1) > boost::bind(&hog_pair::first, _2));
-	unsigned num = 0;
-	for (auto i = false_positives.begin(); i != false_positives.end() && num < cfg.num_hard_false_positive_retrain(); ++i)
-		negatives.push_back(std::move(i->second));
+	for (auto& fp : false_positives)
+		negatives.push_back(std::move(fp.second));
 
 	//
 	// hard train svm

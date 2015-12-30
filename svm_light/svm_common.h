@@ -295,4 +295,10 @@ void   copyright_notice(void);
 extern long   verbosity;              /* verbosity level (0-4) */
 extern long   kernel_cache_statistic;
 
+# ifdef _MSC_VER
+#  if _MSC_VER < 1900
+int isnan(double);
+#  endif
+# endif
+
 #endif

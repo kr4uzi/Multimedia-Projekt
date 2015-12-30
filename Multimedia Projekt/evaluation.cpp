@@ -185,10 +185,14 @@ mat_plot::mat_plot(mat_plot&& rhs)
 mat_plot& mat_plot::operator=(mat_plot&& rhs)
 {
 	this->~mat_plot();
-	labels = scores = engine = nullptr;
-	std::swap(engine, rhs.engine);
-	std::swap(labels, rhs.labels);
-	std::swap(scores, rhs.scores);
+
+	labels_data = std::move(rhs.labels_data);
+	scores_data = std::move(rhs.scores_data);
+	engine = rhs.engine;
+	labels = rhs.labels;
+	scores = rhs.scores;
+
+	rhs.labels = rhs.scores = rhs.engine = nullptr;
 	return *this;
 }
 
@@ -249,9 +253,15 @@ qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const cl
 		auto parse_error = mmp::annotation::file::parse(filename, annotation);
 		if (!parse_error)
 		{
-			auto img = cv::imread(cfg.root_path() + annotation.get_image_filename());
-			mmp::qualitative_evaluator::show_detections(c, annotation, img.clone(), "normal classifier");
-			mmp::qualitative_evaluator::show_detections(c_hard, annotation, img.clone(), "hard classifier");
+			auto img_path = cfg.root_path() + "/" + annotation.get_image_filename();
+			if (path_exists(img_path))
+			{
+				auto img = cv::imread(img_path);
+				mmp::qualitative_evaluator::show_detections(c, annotation, img.clone(), "normal classifier");
+				mmp::qualitative_evaluator::show_detections(c_hard, annotation, img.clone(), "hard classifier");
+			}
+			else
+				log << to::both << "error loading image: " << img_path << " (file does not exist)" << std::endl;
 		}
 		else
 			log << to::both << "error parsing file: " << parse_error.error_msg() << std::endl;

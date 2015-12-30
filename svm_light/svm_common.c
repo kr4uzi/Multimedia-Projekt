@@ -973,3 +973,12 @@ void copyright_notice(void)
   printf("The author is not responsible for implications from the use of this\n");
   printf("software.\n\n");
 }
+
+# ifdef _MSC_VER
+#  if _MSC_VER < 1900
+int isnan(double a)
+{
+	return(_isnan(a));
+}
+#  endif
+# endif 

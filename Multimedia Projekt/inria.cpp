@@ -1,6 +1,11 @@
 #include "inria.h"
 using namespace mmp;
 
+inria_cfg::inria_cfg()
+{
+
+}
+
 inria_cfg::inria_cfg(const std::string& r, const std::string& s, const std::string& sh, const std::string& ev, const std::string& evh, double c, unsigned num_rng_windows_per_neg_sample, unsigned num_false_positives_training)
 	: root(r), svm_path_normal(s), svm_path_hard(sh), eval_file(ev), eval_file_hard(evh), _svm_c(c), num_rngs(num_rng_windows_per_neg_sample), num_fps(num_false_positives_training)
 {

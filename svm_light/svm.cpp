@@ -31,14 +31,14 @@ namespace
 		learn_parm->compute_loo = 0;
 		learn_parm->rho = 1.0;
 		learn_parm->xa_depth = 0;
-		strncpy(learn_parm->alphafile, "", sizeof(LEARN_PARM::alphafile));
+		strncpy(learn_parm->alphafile, "", sizeof(learn_parm->alphafile));
 
 		kernel_parm->kernel_type = 0;
 		kernel_parm->poly_degree = 3;
 		kernel_parm->rbf_gamma = 1.0;
 		kernel_parm->coef_lin = 1;
 		kernel_parm->coef_const = 1;
-		std::strncpy(kernel_parm->custom, "empty", sizeof(KERNEL_PARM::custom));
+		std::strncpy(kernel_parm->custom, "empty", sizeof(kernel_parm->custom));
 	}
 }
 
@@ -66,8 +66,13 @@ void sparse_vector::svector_init(void ** svector, const std::vector<sparse_vecto
 	std::vector<WORD> _words;
 	_words.reserve(words.size() + 1);
 	for (auto& word : words)
-		_words.push_back(WORD{ word.first, word.second });
-	_words.push_back(WORD{ 0 });
+	{
+		WORD w = { word.first, word.second };
+		_words.push_back(std::move(w));
+	}
+	WORD w;
+	w.wnum = 0;
+	_words.push_back(std::move(w));
 
 	auto vec = create_svector(_words.data(), "", 1);
 	*svector = vec;
@@ -80,6 +85,8 @@ void sparse_vector::svector_init(void ** svector, const std::vector<sparse_vecto
 
 sparse_vector& sparse_vector::operator=(sparse_vector&& rhs)
 {
+	this->~sparse_vector();
+
 	_size = rhs._size;
 	_svector = rhs._svector;
 	_words_end = rhs._words_end;

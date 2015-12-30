@@ -11,7 +11,7 @@
 
 bool mmp::path_exists(const std::string& path)
 {
-	return boost::filesystem::exists(path);
+	return boost::filesystem::exists(path) || boost::filesystem::is_directory(path);
 }
 
 std::vector<std::string> mmp::files_in_folder(const std::string& folder)
@@ -82,6 +82,6 @@ std::string mmp::time_string()
 	auto now = system_clock::now();
 	auto now_t = std::chrono::system_clock::to_time_t(now);
 	std::stringstream ss;
-	ss << std::put_time(std::localtime(&now_t), "%F %X");
+	ss << std::put_time(std::localtime(&now_t), "%Y-%m-%d %X");
 	return ss.str();
 }

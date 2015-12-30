@@ -39,12 +39,35 @@ int main(int argc, char ** argv)
 		return 1;
 	}
 
-	std::string required[] = { "root", "svm", "svm_hard", "eval", "eval_hard" };
+	std::string required[] = { "root", "svm", "svm_hard" };
 	for (auto& key : required)
 	{
 		if (!raw_cfg.exists(key))
 		{
 			mmp::log << "[" << key << "] is a required config key!" << std::endl;
+			return 1;
+		}
+		else if (!mmp::path_exists(raw_cfg.get_string(key)))
+		{
+			mmp::log << "[" << key << "] = [" << raw_cfg.get_string(key) << "] invalid (path not existing)!" << std::endl;
+			return 1;
+		}
+	}
+
+	//
+	// evaluation config
+	//
+	std::string evals[] = { "eval", "eval_hard" };
+	for (auto& key : evals)
+	{
+		if (!raw_cfg.exists(key) && !raw_cfg.get_bool("skip_" + key))
+		{
+			mmp::log << "[" << key << "] is a required config key if skip_ << " << key << " false or not set!" << std::endl;
+			return 1;
+		}
+		else if (!mmp::path_exists(raw_cfg.get_string(key)))
+		{
+			mmp::log << "[" << key << "] = [" << raw_cfg.get_string(key) << "] invalid (path not existing)!" << std::endl;
 			return 1;
 		}
 	}
@@ -74,13 +97,23 @@ int main(int argc, char ** argv)
 	// load svm_files
 	{
 		mmp::log << "loading svm files ..." << std::endl;
-		std::thread thn([&c_normal]() { c_normal.load(); });
-		std::thread thh([&c_hard]() { c_hard.load(true); });
+		std::thread thn, thh;
+		if (!raw_cfg.get_bool("skip_eval") || !raw_cfg.get_bool("skip_eval_qual"))
+			thn = std::thread([&c_normal]() { c_normal.load(); });
+		if (!raw_cfg.get_bool("skip_eval_hard") || !raw_cfg.get_bool("skip_eval_qual"))
+			thh = std::thread([&c_hard]() { c_hard.load(true); });
 
-		thn.join();
-		mmp::log << cfg.svm_file() << " loaded" << std::endl;
-		thh.join();
-		mmp::log << cfg.svm_file_hard() << " loaded" << std::endl;
+		if (!raw_cfg.get_bool("skip_eval") || !raw_cfg.get_bool("skip_eval_qual"))
+		{
+			thn.join();
+			mmp::log << cfg.svm_file() << " loaded" << std::endl;
+		}
+
+		if (!raw_cfg.get_bool("skip_eval_hard") || !raw_cfg.get_bool("skip_eval_qual"))
+		{
+			thh.join();
+			mmp::log << cfg.svm_file_hard() << " loaded" << std::endl;
+		}
 	}
 
 	// quantitative evaluation
@@ -95,7 +128,7 @@ int main(int argc, char ** argv)
 
 	// quantitative evaluation with hard negative samples
 	mmp::mat_plot plot_hard;
-	if (!raw_cfg.get_bool("skip_hard_eval"))
+	if (!raw_cfg.get_bool("skip_eval_hard"))
 	{
 		mmp::quantitative_evaluator eval_hard(cfg, c_hard);
 		plot_hard = mmp::mat_plot(eval_hard.get_labels(), eval_hard.get_scores());
@@ -104,6 +137,7 @@ int main(int argc, char ** argv)
 	}
 
 	// qualitative evaluation
+	if (!raw_cfg.get_bool("skip_eval_qual"))
 	{
 		mmp::log << mmp::to::console << std::endl << "qualitataive evaluation . . ." << std::endl;
 		mmp::qualitative_evaluator(cfg, c_normal, c_hard);

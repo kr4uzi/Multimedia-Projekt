@@ -3,21 +3,18 @@
 #include <opencv2/core/core.hpp>	// Mat, Rect
 #include <vector>
 
-/*
- * Task 1.3: extract hog features with variant UoCCTi
- */
-
 namespace mmp
 {
 	class hog
 	{
 	public:
-		static const enum
+		enum hog_variant
 		{
 			DalalTriggs,
 			UoCCTi
-		} variant = UoCCTi;
+		};
 
+		static const hog_variant variant = UoCCTi;
 		static const unsigned cellsize = 8;
 		static const unsigned orientations = 9;
 		static const unsigned dimensions = (variant == UoCCTi) ? (4 + 3 * orientations) : (4 * orientations);
