@@ -74,26 +74,15 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	for (long i = 0; i < positives.size(); i++)
 	{
 		image img(cv::imread(positives[i])(positive_roi));
-
-		double a = 0;
-		for (auto s : img.scaled_images())
-		{
-			for (auto sw : s.sliding_windows())
-			{
-				double a = c.classify(sw.features());
-				if (a > 0)
-					img.add_detection(sw.window(), a);
-			}
-		}
-
+		img.detect_all(c);
 		img.suppress_non_maximum();
 
 #pragma omp critical
 		{
-			for (auto detection : img.get_detections())
+			for (auto& detection : img.get_detections())
 			{
 				labels.push_back(1);
-				scores.push_back(detection.second);
+				scores.push_back(detection.first);
 			}
 
 #pragma omp flush(processed)
@@ -111,25 +100,15 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	for (long i = 0; i < negatives.size(); i++)
 	{
 		image img(cv::imread(negatives[i]));
-
-		for (auto s : img.scaled_images())
-		{
-			for (auto sw : s.sliding_windows())
-			{
-				double a = c.classify(sw.features());
-				if (a > 0)
-					img.add_detection(sw.window(), a);
-			}
-		}
-
+		img.detect_all(c);
 		img.suppress_non_maximum();
 
 #pragma omp critical
 		{
-			for (auto detection : img.get_detections())
+			for (auto& detection : img.get_detections())
 			{
 				labels.push_back(-1);
-				scores.push_back(detection.second);
+				scores.push_back(detection.first);
 			}
 
 #pragma omp flush(processed)
@@ -276,30 +255,34 @@ void qualitative_evaluator::show_detections(const classifier& c, annotation::fil
 
 	for (auto& d : img.get_detections())
 	{
-		cv::rectangle(src, cv::Rect(d.first.x, d.first.y, 82, 18), cv::Scalar(255, 255, 255), -1);
-
-		cv::Scalar color;
-		if (img.is_valid_detection(d.first))
-			cv::rectangle(src, d.first, color = cv::Scalar(0, 255, 0));
-		else
-			cv::rectangle(src, d.first, color = cv::Scalar(255, 0, 0));
-
+		auto detection_window = d.second->rect();
 		float max_overlap = 0;
 		for (auto& g : img.get_objects_boxes())
 		{
-			auto temp = mmp::get_overlap(d.first, g);
+			auto temp = mmp::get_overlap(detection_window, g);
 
 			if (temp > max_overlap)
 				max_overlap = temp;
 		}
 
 		std::stringstream ss;
-		ss << "dist (" << std::setprecision(2) << d.second << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 3, d.first.y + 9), cv::FONT_HERSHEY_PLAIN, 0.7, color);
-
+		ss << "dist (" << std::setprecision(2) << d.first << ")";
+		std::string dist_str = ss.str();
 		ss.str(std::string());
 		ss << "overlap(" << std::setprecision(2) << max_overlap << ")";
-		cv::putText(src, ss.str(), cv::Point(d.first.x + 3, d.first.y + 18), cv::FONT_HERSHEY_PLAIN, 0.7, color);
+		std::string overlap_str = ss.str();
+
+		auto box_size = cv::getTextSize(dist_str.length() > overlap_str.length() ? dist_str : overlap_str, cv::FONT_HERSHEY_PLAIN, 0.7, 1, nullptr);
+		cv::rectangle(src, cv::Rect(detection_window.x, detection_window.y, box_size.width + 1, 18), cv::Scalar(255, 255, 255), -1);
+		
+		cv::Scalar color;
+		if (img.is_valid_detection(d.second->rect()))
+			cv::rectangle(src, detection_window, color = cv::Scalar(0, 255, 0));
+		else
+			cv::rectangle(src, detection_window, color = cv::Scalar(255, 0, 0));
+		
+		cv::putText(src, dist_str, cv::Point(detection_window.x + 3, detection_window.y + 9), cv::FONT_HERSHEY_PLAIN, 0.7, color);
+		cv::putText(src, overlap_str, cv::Point(detection_window.x + 3, detection_window.y + 18), cv::FONT_HERSHEY_PLAIN, 0.7, color);
 	}
 
 	for (auto& g : img.get_objects_boxes())
