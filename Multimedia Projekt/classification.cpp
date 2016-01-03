@@ -7,7 +7,7 @@
 #include <opencv2/highgui/highgui.hpp>	// imread
 #include <utility>		// pair, move
 #include <ctime>		// time
-#include <iterator>		// back_inserter
+#include <iterator>		// back_inserter, advance
 #include <set>
 using namespace mmp;
 
@@ -47,7 +47,6 @@ void classifier::train()
 	//
 	// positives
 	//
-
 	const cv::Rect positive_roi(
 		cfg.normalized_positive_training_x_offset(), cfg.normalized_positive_training_y_offset(), // both should be 16
 		sliding_window::width, sliding_window::height
@@ -70,7 +69,6 @@ void classifier::train()
 	//
 	// negatives
 	//
-
 	processed = 0;
 
 #pragma omp parallel for schedule(dynamic, 50)
@@ -116,7 +114,6 @@ void classifier::train()
 	//
 	// train svm
 	//
-
 	{
 		log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
 		model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
@@ -128,47 +125,52 @@ void classifier::train()
 	// hard mining (false positives)
 	//
 	processed = 0;
-	typedef std::pair<double, svm::sparse_vector> hog_pair;
-	std::vector<hog_pair> false_positives;
+	typedef std::pair<double, svm::sparse_vector> weighted_svec;
+	auto det_comp = [](const weighted_svec& a, const weighted_svec& b)
+	{
+		return a.first > b.first;
+	};
+	
+	std::set<weighted_svec, bool(*)(const weighted_svec& a, const weighted_svec& b)> detections(det_comp);
 
 #pragma omp parallel for schedule(dynamic, 10)
 	for (long i = 0; i < negative_filenames.size(); i++)
 	{
 		auto& filename = negative_filenames[i];
 		image img(cv::imread(filename));
-		std::vector<hog_pair> hogs;
+		img.detect_all(*this);
+		img.suppress_non_maximum();
 
-		for (auto scaled : img.scaled_images())
-		{
-			for (auto window : scaled.sliding_windows())
-			{
-				svm::sparse_vector vec(mat_to_svector(window.features()));
-				double a = model->classify(vec);	// classify takes very long...			
-				if (a > 0)
-					hogs.emplace_back(a, std::move(vec));
-			}
-		}
-
-		
 #pragma omp critical
 		{
-			std::move(hogs.begin(), hogs.end(), std::back_inserter(false_positives));
-			std::sort(false_positives.begin(), false_positives.end(), boost::bind(&hog_pair::first, _1) > boost::bind(&hog_pair::first, _2));
-			if (false_positives.size() > cfg.num_hard_false_positive_retrain())
-				false_positives.erase(false_positives.begin() + cfg.num_hard_false_positive_retrain(), false_positives.end());
+			for (auto& detection : img.get_detections())
+				detections.insert(
+					weighted_svec(
+						detection.first, mat_to_svector(
+							detection.second->features()
+						)
+					)
+				);
+
+			// saves RAM
+			if (detections.size() > cfg.num_hard_false_positive_retrain())
+			{
+				auto begin = detections.begin();
+				std::advance(begin, cfg.num_hard_false_positive_retrain());
+				detections.erase(begin, detections.end());
+			}
 
 #pragma omp flush(processed)
 			print_progress("false positives processed", ++processed, negative_filenames.size(), filename);
 		}
 	}
 
-	for (auto& fp : false_positives)
-		negatives.push_back(std::move(fp.second));
+	for (auto& detection : detections)
+		negatives.push_back(detection.second);
 
 	//
 	// hard train svm
 	//
-
 	{
 		log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
 		delete model;
@@ -191,23 +193,6 @@ void classifier::load(bool hard)
 
 svm::sparse_vector classifier::mat_to_svector(const cv::Mat& mat)
 {
-	//std::vector<float>::size_type i = 0;
-	//std::vector<float> data(mat.cols * mat.rows * mat.channels());
-
-	//for (int y = 0; y < mat.rows; y++)
-	//{
-	//	auto yptr = mat.ptr<float>(y);
-
-	//	for (int x = 0; x < mat.cols; x++)
-	//	{
-	//		for (int c = 0; c < mat.channels(); c++)
-	//			data[i++] = yptr[c];
-
-	//		yptr += mat.channels();
-	//	}
-	//}
-
-	//return svm::sparse_vector(data.begin(), data.end(), data.size());
 	assert(mat.channels() == hog::dimensions);
 	struct mat_iter
 	{
