@@ -25,8 +25,8 @@ Global
 		{11DFB63D-BEC4-4901-87E7-07B97193E14F}.Release|x64.Build.0 = Release|x64
 		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Debug|x64.ActiveCfg = Debug|x64
 		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Debug|x64.Build.0 = Debug|x64
-		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Release Matlab|x64.ActiveCfg = Release Matlab|x64
-		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Release Matlab|x64.Build.0 = Release Matlab|x64
+		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Release Matlab|x64.ActiveCfg = Release|x64
+		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Release Matlab|x64.Build.0 = Release|x64
 		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Release|x64.ActiveCfg = Release|x64
 		{3F2D1679-ABC2-42C5-8844-89BB69443CAA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection

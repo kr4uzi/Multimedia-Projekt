@@ -39,6 +39,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scale_cache.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\svm_light\svm_light.vcxproj">
+      <Project>{3f2d1679-abc2-42c5-8844-89bb69443caa}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{11DFB63D-BEC4-4901-87E7-07B97193E14F}</ProjectGuid>
     <RootNamespace>MultimediaProjekt</RootNamespace>
@@ -48,22 +53,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v110</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Matlab|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -81,65 +81,61 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\.;C:\Program Files\MATLAB\R2015b\extern\include;C:\boost_1_59_0;C:\opencv\build\include;C:\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;C:\boost_1_59_0\stage\lib;C:\opencv\build\x64\vc12\lib;C:\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <TargetName>mmp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\.;D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <TargetName>mmp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Matlab|x64'">
-    <IncludePath>..\.;C:\Program Files\MATLAB\R2015b\extern\include;D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;C:\Program Files\MATLAB\R2015b\extern\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;$(LibraryPath)</LibraryPath>
+    <TargetName>mmp</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>svm_lightd.lib;opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;libmx.lib;libeng.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>../.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>svm_light.lib;opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Matlab|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WITH_MATLAB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>../.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>svm_light.lib;opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;libmx.lib;libeng.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;libmx.lib;libeng.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <SubSystem>Console</SubSystem>
     </Link>
