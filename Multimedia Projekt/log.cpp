@@ -2,7 +2,7 @@
 #include "helpers.h"
 using namespace mmp;
 
-Logger::Logger(const std::string& filename)
+logger::logger(const std::string& filename)
 	: target(to::both)
 {
 	log_file.open(filename, std::ios::app);
@@ -14,7 +14,7 @@ Logger::Logger(const std::string& filename)
 		std::cout << "could not open logfile [" << filename << "]" << std::endl;
 }
 
-Logger::~Logger()
+logger::~logger()
 {
 	if (log_file.is_open())
 	{
@@ -23,4 +23,4 @@ Logger::~Logger()
 	}
 }
 
-Logger mmp::log("mmp.log");
+logger mmp::log("mmp.log");

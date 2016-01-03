@@ -13,24 +13,24 @@ namespace mmp
 		both
 	};
 
-	class Logger
+	class logger
 	{
 	private:
 		std::ofstream log_file;
 		to target;
 
 	public:
-		Logger(const std::string& filename);
-		~Logger();
+		logger(const std::string& filename);
+		~logger();
 
-		Logger& operator<<(const to& val)
+		logger& operator<<(const to& val)
 		{
 			target = val;
 			return *this;
 		}
 
 		template<class T>
-		Logger& operator<<(T val)
+		logger& operator<<(T val)
 		{
 			if (target == to::console || target == to::both)
 				std::cout << val;
@@ -41,7 +41,7 @@ namespace mmp
 			return *this;
 		}
 
-		Logger& operator<<(std::ostream& (*func) (std::ostream&))
+		logger& operator<<(std::ostream& (*func) (std::ostream&))
 		{
 			if (target == to::console || target == to::both)
 				func(std::cout);
@@ -56,5 +56,5 @@ namespace mmp
 		}
 	};
 
-	extern Logger log;
+	extern logger log;
 }
