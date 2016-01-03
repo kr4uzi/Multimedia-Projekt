@@ -5,6 +5,7 @@
 #include "classification.h"
 #include <opencv2/imgproc/imgproc.hpp>	// resize
 #include <algorithm>					// sort, remove_if
+#include <boost/bind.hpp>
 using namespace mmp;
 
 sliding_window::sliding_window(std::shared_ptr<const hog> h, int x, int y, float scale)
@@ -18,21 +19,9 @@ cv::Mat sliding_window::features() const
 	return (*_hog)(cv::Rect(x, y, width, height));
 }
 
-cv::Rect sliding_window::window() const
+cv::Rect sliding_window::rect() const
 {
 	return cv::Rect(int(x * _scale), int(y * _scale), int(width * _scale), int(height * _scale));
-}
-
-scaled_image::scaled_image(const scaled_image& rhs)
-	: scale(rhs.scale), windows(rhs.windows), _hog(rhs._hog)
-{
-
-}
-
-scaled_image::scaled_image(scaled_image&& rhs)
-	: scale(rhs.scale), windows(std::move(rhs.windows)), _hog(std::move(rhs._hog))
-{
-
 }
 
 scaled_image::scaled_image(cv::Mat src, float scale)
@@ -44,19 +33,6 @@ scaled_image::scaled_image(cv::Mat src, float scale)
 		for (int x = 0; x <= src.cols - sliding_window::width; x += hog::cellsize)
 			windows.emplace_back(std::const_pointer_cast<const hog>(_hog), x, y, scale);
 	}
-}
-
-image::image(const image& rhs)
-	: images(rhs.images), detections(rhs.detections)
-{
-
-}
-
-
-image::image(image&& rhs)
-	: images(std::move(rhs.images)), detections(std::move(rhs.detections))
-{
-
 }
 
 image::image(cv::Mat src)
@@ -78,45 +54,45 @@ image::image(cv::Mat src)
 	}
 }
 
-void image::add_detection(const cv::Rect& rect, double weight)
+void image::add_detection(detection det)
 {
 	bool overlapped = false;
 	for (unsigned i = 0; i < detections.size(); i++)
 	{
-		if (get_overlap(detections[i].first, rect) >= 0.2f)
+		if (get_overlap(detections[i].second->rect(), det.second->rect()) >= 0.2f)
 		{
 			overlapped = true;
 
-			if (detections[i].second < weight)
+			if (detections[i].first < det.first)
 			{
-				detections[i] = std::make_pair(rect, weight);
+				detections[i] = std::move(det);
 				return;
 			}
 		}
 	}
 
 	if (!overlapped)
-		detections.emplace_back(rect, weight);
+		detections.push_back(std::move(det));
 }
 
 void image::suppress_non_maximum(float min_overlap)
 {
-	std::sort(detections.begin(), detections.end(), [](const detection& a, const detection& b) { return a.second > b.second; });
-
+	std::sort(detections.begin(), detections.end(), boost::bind(&detection::first, _1) > boost::bind(&detection::first, _2));
+	
 	for (auto i = detections.begin(); i != detections.end(); ++i)
 	{
 		for (auto j = i + 1; j != detections.end(); ++j)
 		{
-			if (j->second == 0) continue;
+			if (j->first == 0) continue;
 
-			if (get_overlap(i->first, j->first) >= min_overlap)
-				j->second = 0; // mark entry for deletion
+			if (get_overlap(i->second->rect(), j->second->rect()) >= min_overlap)
+				j->first = 0; // mark entry for deletion
 		}
 	}
 
 	auto marked_for_deletion = [](const detection& d)
 	{
-		return d.second == 0;
+		return d.first == 0;
 	};
 
 	detections.erase(std::remove_if(detections.begin(), detections.end(), marked_for_deletion), detections.end());
@@ -124,13 +100,13 @@ void image::suppress_non_maximum(float min_overlap)
 
 void image::detect_all(const classifier& c)
 {
-	for (auto s : scaled_images())
+	for (auto& s : scaled_images())
 	{
-		for (auto sw : s.sliding_windows())
+		for (auto& sw : s.sliding_windows())
 		{
 			double a = c.classify(sw.features());
 			if (a > 0)
-				add_detection(sw.window(), a);
+				add_detection(std::make_pair(a, &sw));
 		}
 	}
 }

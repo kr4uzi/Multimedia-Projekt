@@ -23,7 +23,7 @@ namespace mmp
 		sliding_window(std::shared_ptr<const hog> _hog, int x, int y, float scale);
 
 		cv::Mat features() const;
-		cv::Rect window() const;
+		cv::Rect rect() const;
 		float scale() const		{ return _scale; }
 	};
 
@@ -35,8 +35,6 @@ namespace mmp
 		std::shared_ptr<hog> _hog;
 
 	public:
-		scaled_image(const scaled_image& rhs);
-		scaled_image(scaled_image&& rhs);
 		scaled_image(cv::Mat src, float scale);
 
 		const std::vector<sliding_window>& sliding_windows() const { return windows; }
@@ -48,22 +46,22 @@ namespace mmp
 	class image
 	{
 	public:
-		typedef std::pair<cv::Rect, double> detection;
 		static const unsigned scales_per_octave = 5;
+		typedef std::pair<double, const sliding_window *> detection;
 
 	private:
 		std::vector<scaled_image> images;
 		std::vector<detection> detections;
 
+	private:
+		void add_detection(detection det);
+
 	public:
-		image(const image& rhs);
-		image(image&& rhs);
 		image(cv::Mat img);
 
 		const std::vector<detection>& get_detections() const { return detections; }
-		void add_detection(const cv::Rect& rect, double weigth);
-		void suppress_non_maximum(float min_overlap = 0.2f);
 		void detect_all(const classifier& c);
+		void suppress_non_maximum(float min_overlap = 0.2f);		
 
 		const std::vector<scaled_image>& scaled_images() const { return images; }
 	};
