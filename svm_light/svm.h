@@ -11,7 +11,6 @@ namespace svm
 	{
 	public:
 		typedef long size_type;
-		typedef std::pair<size_type, float> word;
 
 		class const_iterator
 		{
@@ -35,6 +34,7 @@ namespace svm
 		void * _words_end;
 
 	private:
+		typedef std::pair<size_type, float> word;
 		static void svector_init(void ** svector, const std::vector<word>& words, void ** words_end);
 
 	public:
