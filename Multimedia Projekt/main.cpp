@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
 			mmp::log << "[" << key << "] is a required config key!" << std::endl;
 			return 1;
 		}
-		else if (!mmp::path_exists(raw_cfg.get_string(key)))
+		else if (raw_cfg.get_bool("skip_training") && !mmp::path_exists(raw_cfg.get_string(key)))
 		{
 			mmp::log << "[" << key << "] = [" << raw_cfg.get_string(key) << "] invalid (path not existing)!" << std::endl;
 			return 1;
@@ -63,11 +63,6 @@ int main(int argc, char ** argv)
 		if (!raw_cfg.exists(key) && !raw_cfg.get_bool("skip_" + key))
 		{
 			mmp::log << "[" << key << "] is a required config key if skip_ << " << key << " false or not set!" << std::endl;
-			return 1;
-		}
-		else if (!mmp::path_exists(raw_cfg.get_string(key)))
-		{
-			mmp::log << "[" << key << "] = [" << raw_cfg.get_string(key) << "] invalid (path not existing)!" << std::endl;
 			return 1;
 		}
 	}
@@ -87,6 +82,12 @@ int main(int argc, char ** argv)
 	// train
 	if (!raw_cfg.get_bool("skip_training"))
 	{
+		if (!mmp::path_exists(cfg.negative_train_path()) || !mmp::path_exists(cfg.normalized_positive_train_path()))
+		{
+			mmp::log << "invalid root folder specified (train path(s) not found)!" << std::endl;
+			return 1;
+		}
+
 		mmp::classifier(cfg).train();
 		mmp::log << mmp::to::both << std::endl;
 	}
@@ -113,6 +114,15 @@ int main(int argc, char ** argv)
 		{
 			thh.join();
 			mmp::log << cfg.svm_file_hard() << " loaded" << std::endl;
+		}
+	}
+
+	if (!raw_cfg.get_bool("skip_eval") || !raw_cfg.get_bool("skip_eval_hard"))
+	{
+		if (!mmp::path_exists(cfg.normalized_positive_test_path()) || !mmp::path_exists(cfg.negative_test_path()))
+		{
+			mmp::log << "invalid root folder specified (test folder(s) not found)!" << std::endl;
+			return 1;
 		}
 	}
 
