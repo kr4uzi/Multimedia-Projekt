@@ -56,13 +56,13 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 {
 	log << to::both << "starting evaluation at: " << time_string() << std::endl;
 
-	const auto positive_roi = cv::Rect(
-		cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
-		sliding_window::width, sliding_window::height
-	);
-	const auto positives = files_in_folder(cfg.normalized_positive_test_path());
+	//const auto positive_roi = cv::Rect(
+	//	cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
+	//	sliding_window::width, sliding_window::height
+	//);
+	//const auto positives = files_in_folder(cfg.normalized_positive_test_path());
+	const auto positives = files_in_folder(cfg.test_annotation_path());
 	const auto negatives = files_in_folder(cfg.negative_test_path());
-	const auto positives_train = files_in_folder(cfg.normalized_positive_train_path());
 	const auto negatives_train = files_in_folder(cfg.negative_train_path());
 	unsigned long processed = 0;
 
@@ -73,19 +73,36 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 #pragma omp parallel for schedule(static)
 	for (long i = 0; i < positives.size(); i++)
 	{
-		image img(cv::imread(positives[i])(positive_roi));
+		mmp::annotation::file annotation;
+		auto parse_error = mmp::annotation::file::parse(positives[i], annotation);
+		if (!!parse_error)
+		{
+#pragma omp critical
+			{
+				mmp::log << to::both << "error parsing [" << positives[i] << "]: " << parse_error.error_msg() << std::endl;
+
+#pragma omp flush(processed)
+				++processed;
+			}
+
+			continue;
+		}
+
+		annotated_image img(annotation, cv::imread(cfg.root_path() + "/" + annotation.get_image_filename()));
 		img.detect_all(c);
 		img.suppress_non_maximum();
 
+		std::vector<double> temp_labels;
+		for (auto& detection : img.get_detections())
+			temp_labels.push_back(img.is_valid_detection(detection.second->rect()) ? 1 : -1);
+
 #pragma omp critical
 		{
-			for (auto& detection : img.get_detections())
-			{
-				labels.push_back(1);
-				scores.push_back(detection.first);
-			}
+			labels.insert(labels.end(), temp_labels.begin(), temp_labels.end());
 
-#pragma omp flush(processed)
+			for (auto& detection : img.get_detections())
+				scores.push_back(detection.first);
+
 			print_progress("positives processed", ++processed, positives.size(), positives[i]);
 		}
 	}
