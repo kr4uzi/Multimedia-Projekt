@@ -146,6 +146,9 @@ int main(int argc, char ** argv)
 		plot_hard.save(cfg.evaluation_file_hard());
 	}
 
+	mmp::log << mmp::to::both << std::endl;
+	mmp::log << "finished at: " << mmp::time_string() << std::endl;
+
 	// qualitative evaluation
 	if (!raw_cfg.get_bool("skip_eval_qual"))
 	{
@@ -154,6 +157,9 @@ int main(int argc, char ** argv)
 		mmp::log << mmp::to::console << "qualitiative evaluation terminated" << std::endl;
 	}
 
-	mmp::log << mmp::to::both << std::endl;
-	mmp::log << "finished at: " << mmp::time_string() << std::endl;
+#ifdef WITH_MATLAB
+	// dont close the plots
+	if (!raw_cfg.get_bool("skip_eval") || !raw_cfg.get_bool("skip_eval_hard"))
+		std::system("pause");
+#endif
 }
