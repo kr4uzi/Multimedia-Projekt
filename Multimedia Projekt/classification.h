@@ -3,7 +3,6 @@
 #include <opencv2/core/core.hpp>	// Mat
 #include <svm_light/svm.h>			// linear_model
 #include "inria.h"					// inria_cfg
-#include "extraction.h"				// hog::vector_type
 
 namespace mmp
 {
