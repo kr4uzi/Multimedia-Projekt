@@ -98,14 +98,14 @@ void image::suppress_non_maximum(float min_overlap)
 	detections.erase(std::remove_if(detections.begin(), detections.end(), marked_for_deletion), detections.end());
 }
 
-void image::detect_all(const classifier& c)
+void image::detect_all(const classifier& c, double threshold)
 {
 	for (auto& s : scaled_images())
 	{
 		for (auto& sw : s.sliding_windows())
 		{
 			double a = c.classify(sw.features());
-			if (a > 0)
+			if (a > threshold)
 				add_detection(std::make_pair(a, &sw));
 		}
 	}
