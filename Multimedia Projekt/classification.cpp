@@ -7,7 +7,7 @@
 #include <opencv2/highgui/highgui.hpp>	// imread
 #include <utility>		// pair, move
 #include <ctime>		// time
-#include <iterator>		// back_inserter, advance
+#include <iterator>		// back_inserter, advance, make_move_iterator
 #include <set>
 using namespace mmp;
 
@@ -57,6 +57,7 @@ void classifier::train()
 	{
 		hog hog(cv::imread(positive_filenames[i])(positive_roi));
 		svm::sparse_vector svec(mat_to_svector(hog()));
+
 #pragma omp critical
 		{
 			positives.push_back(std::move(svec));
@@ -141,16 +142,14 @@ void classifier::train()
 		img.detect_all(*this);
 		img.suppress_non_maximum();
 
+		std::vector<weighted_svec> svecs;
+		svecs.reserve(img.get_detections().size());
+		for (auto& detection : img.get_detections())
+			svecs.emplace_back(detection.first, mat_to_svector(detection.second->features()));
+
 #pragma omp critical
 		{
-			for (auto& detection : img.get_detections())
-				detections.insert(
-					weighted_svec(
-						detection.first, mat_to_svector(
-							detection.second->features()
-						)
-					)
-				);
+			detections.insert(std::make_move_iterator(svecs.begin()), std::make_move_iterator(svecs.end()));
 
 			// saves RAM
 			if (detections.size() > cfg.num_hard_false_positive_retrain())
