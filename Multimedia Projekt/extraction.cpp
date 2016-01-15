@@ -1,4 +1,4 @@
-#include "extraction.h"
+#include "hog.h"
 #include <vl/hog.h>
 using namespace mmp;
 

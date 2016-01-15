@@ -3,7 +3,7 @@
 #include <vector>
 #include <utility>		// pair, move
 #include <memory>		// shared_ptr
-#include "extraction.h"
+#include "hog.h"
 
 namespace mmp
 {

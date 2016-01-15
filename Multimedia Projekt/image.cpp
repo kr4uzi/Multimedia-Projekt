@@ -1,6 +1,6 @@
 #include "image.h"
 #include "helpers.h"
-#include "extraction.h"
+#include "hog.h"
 #include "scale_cache.h"
 #include "classification.h"
 #include <opencv2/imgproc/imgproc.hpp>	// resize

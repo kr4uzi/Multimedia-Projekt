@@ -1,6 +1,6 @@
 #include "classification.h"
 #include "image.h"
-#include "extraction.h"
+#include "hog.h"
 #include "helpers.h"
 #include "log.h"
 #include <boost/bind.hpp>
