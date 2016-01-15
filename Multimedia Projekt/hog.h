@@ -58,7 +58,7 @@ namespace mmp
 		
 		// renders whole hog
 		cv::Mat render() const;
-		// render a certain feature return by operator()
+		// render a certain feature returned by operator()
 		cv::Mat render(const cv::Mat& mat) const;
 	};
 }
