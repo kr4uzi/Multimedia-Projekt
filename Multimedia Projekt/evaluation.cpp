@@ -17,6 +17,7 @@
 #include <iomanip>		// setprecision
 #include <sstream>		// stringstream
 #include <fstream>		// ofstream
+#include <limits>		// numeric_limits
 
 using namespace mmp;
 
@@ -56,20 +57,14 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 {
 	log << to::both << "starting evaluation at: " << time_string() << std::endl;
 
-	//const auto positive_roi = cv::Rect(
-	//	cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
-	//	sliding_window::width, sliding_window::height
-	//);
-	//const auto positives = files_in_folder(cfg.normalized_positive_test_path());
 	const auto positives = files_in_folder(cfg.test_annotation_path());
 	const auto negatives = files_in_folder(cfg.negative_test_path());
-	const auto negatives_train = files_in_folder(cfg.negative_train_path());
+	const auto detection_threshold = -std::numeric_limits<double>::infinity();
 	unsigned long processed = 0;
 
 	//
 	// add positive detections
 	//
-
 #pragma omp parallel for schedule(static)
 	for (long i = 0; i < positives.size(); i++)
 	{
@@ -89,7 +84,7 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 		}
 
 		annotated_image img(annotation, cv::imread(cfg.root_path() + "/" + annotation.get_image_filename()));
-		img.detect_all(c);
+		img.detect_all(c, detection_threshold);
 		img.suppress_non_maximum();
 
 		std::vector<double> temp_labels;
@@ -110,14 +105,13 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	//
 	// add negative detections
 	//
-
 	processed = 0;
 
 #pragma omp parallel for schedule(dynamic)
 	for (long i = 0; i < negatives.size(); i++)
 	{
 		image img(cv::imread(negatives[i]));
-		img.detect_all(c);
+		img.detect_all(c, detection_threshold);
 		img.suppress_non_maximum();
 
 #pragma omp critical
@@ -142,7 +136,7 @@ mat_plot::mat_plot()
 
 }
 
-mat_plot::mat_plot(const std::vector<double>& lbls, const std::vector<double>& scrs)
+mat_plot::mat_plot(const matlab_array& lbls, const matlab_array& scrs)
 	: engine(nullptr), labels(nullptr), scores(nullptr), labels_data(lbls), scores_data(scrs)
 {
 #ifdef WITH_MATLAB
@@ -223,14 +217,30 @@ void mat_plot::show(const std::string& title) const
 void mat_plot::save(const std::string& filename) const
 {
 	std::ofstream plot_file(filename);
+
+	// labels
 	plot_file << "labels = [";
-	for (auto& label : labels_data) plot_file << label << ", ";
+	for (matlab_array::size_type i = 0; i < labels_data.size();)
+	{
+		plot_file << labels_data[i] << ", ";
+
+		if (++i % 500 == 0)
+			std::cout << std::endl;
+	}
 	plot_file << "];" << std::endl;
 
+	// scores
 	plot_file << "scores = [";
-	for (auto& score : scores_data) plot_file << score << ", ";
+	for (matlab_array::size_type i = 0; i < scores_data.size();)
+	{
+		plot_file << scores_data[i] << ", ";
+
+		if (++i % 500 == 0)
+			std::cout << std::endl;
+	}
 	plot_file << "];" << std::endl;
 
+	// plot
 	plot_file << "vl_det(labels, scores);" << std::endl;
 	plot_file << "axis([10^-6 10^-1 0.01 0.5]);" << std::endl;
 	plot_file.close();
@@ -272,6 +282,7 @@ void qualitative_evaluator::show_detections(const classifier& c, annotation::fil
 
 	for (auto& d : img.get_detections())
 	{
+		// determine maximum overlap with the ground truth boxes
 		auto detection_window = d.second->rect();
 		float max_overlap = 0;
 		for (auto& g : img.get_objects_boxes())
@@ -282,6 +293,7 @@ void qualitative_evaluator::show_detections(const classifier& c, annotation::fil
 				max_overlap = temp;
 		}
 
+		// generate distance and overlap strings
 		std::stringstream ss;
 		ss << "dist (" << std::setprecision(2) << d.first << ")";
 		std::string dist_str = ss.str();
@@ -289,6 +301,7 @@ void qualitative_evaluator::show_detections(const classifier& c, annotation::fil
 		ss << "overlap(" << std::setprecision(2) << max_overlap << ")";
 		std::string overlap_str = ss.str();
 
+		// for readability put the strings on a monochromatic rectangle
 		auto box_size = cv::getTextSize(dist_str.length() > overlap_str.length() ? dist_str : overlap_str, cv::FONT_HERSHEY_PLAIN, 0.7, 1, nullptr);
 		cv::rectangle(src, cv::Rect(detection_window.x, detection_window.y, box_size.width + 1, 18), cv::Scalar(255, 255, 255), -1);
 		
