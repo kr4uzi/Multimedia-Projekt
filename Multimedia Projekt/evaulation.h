@@ -24,19 +24,22 @@ namespace mmp
 
 	class mat_plot
 	{
+	public:
+		typedef std::vector<double> matlab_array;
+
 	private:
 		void * engine;
 		void * labels;
 		void * scores;
 
-		std::vector<double> labels_data;
-		std::vector<double> scores_data;
+		matlab_array labels_data;
+		matlab_array scores_data;
 		
 	public:
 		mat_plot();
 		mat_plot(mat_plot &&rhs);
 		mat_plot& operator=(mat_plot&& rhs);
-		mat_plot(const std::vector<double>& labels, const std::vector<double>& scores);
+		mat_plot(const matlab_array& labels, const matlab_array& scores);
 		~mat_plot();
 
 		void save(const std::string& filename) const;
