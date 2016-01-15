@@ -19,7 +19,7 @@
     <ClInclude Include="classification.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="evaulation.h" />
-    <ClInclude Include="extraction.h" />
+    <ClInclude Include="hog.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="inria.h" />
@@ -72,27 +72,31 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="boost.props" />
+    <Import Project="opencv.props" />
+    <Import Project="vlfeat.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="boost.props" />
+    <Import Project="opencv.props" />
+    <Import Project="vlfeat.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release Matlab|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="boost.props" />
+    <Import Project="opencv.props" />
+    <Import Project="matlab.props" />
+    <Import Project="vlfeat.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
     <TargetName>mmp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;$(LibraryPath)</LibraryPath>
     <TargetName>mmp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Matlab|x64'">
-    <IncludePath>D:\mmp\boost_1_60_0;D:\mmp\opencv-2.4.11\build\include;D:\mmp\vlfeat-0.9.20;C:\Program Files\MATLAB\R2015b\extern\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\mmp\boost_1_60_0\stage\lib;D:\mmp\opencv-2.4.11\build\x64\vc12\lib;D:\mmp\vlfeat-0.9.20\bin\win64;C:\Program Files\MATLAB\R2015b\extern\lib\win64\microsoft;$(LibraryPath)</LibraryPath>
     <TargetName>mmp</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -103,7 +107,6 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -118,8 +121,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ShowProgress>NotSet</ShowProgress>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -135,8 +136,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opencv_core2411.lib;opencv_highgui2411.lib;opencv_imgproc2411.lib;vl.lib;libmx.lib;libeng.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ShowProgress>NotSet</ShowProgress>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
