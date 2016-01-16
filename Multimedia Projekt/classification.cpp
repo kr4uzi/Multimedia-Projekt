@@ -3,6 +3,7 @@
 #include "hog.h"
 #include "helpers.h"
 #include "log.h"
+#include "inria.h"
 #include <boost/bind.hpp>
 #include <opencv2/highgui/highgui.hpp>	// imread
 #include <utility>		// pair, move
@@ -56,7 +57,7 @@ void classifier::train()
 	for (long i = 0; i < positive_filenames.size(); i++)
 	{
 		hog hog(cv::imread(positive_filenames[i])(positive_roi));
-		svm::sparse_vector svec(mat_to_svector(hog()));
+		svm::sparse_vector svec(features_to_svector(hog()));
 
 #pragma omp critical
 		{
@@ -97,7 +98,7 @@ void classifier::train()
 			auto id = scaled_num * 10 + sw_num;
 			if (windows.find(id) == windows.end())
 			{
-				svm::sparse_vector fvec(mat_to_svector(sliding_windows[sw_num].features()));
+				svm::sparse_vector fvec(features_to_svector(sliding_windows[sw_num].features()));
 				hogs.push_back(std::move(fvec));
 				windows.insert(id);
 			}
@@ -145,7 +146,7 @@ void classifier::train()
 		std::vector<weighted_svec> svecs;
 		svecs.reserve(img.get_detections().size());
 		for (auto& detection : img.get_detections())
-			svecs.emplace_back(detection.first, mat_to_svector(detection.second->features()));
+			svecs.emplace_back(detection.first, features_to_svector(detection.second->features()));
 
 #pragma omp critical
 		{
@@ -182,7 +183,7 @@ void classifier::train()
 double classifier::classify(const cv::Mat& mat) const
 {
 	if (!model) throw std::exception("classifier not loaded or trained");
-	return model->classify(mat_to_svector(mat));
+	return model->classify(features_to_svector(mat));
 }
 
 void classifier::load(bool hard)
@@ -190,7 +191,7 @@ void classifier::load(bool hard)
 	model = new svm::linear_model(hard ? cfg.svm_file_hard() : cfg.svm_file());	
 }
 
-svm::sparse_vector classifier::mat_to_svector(const cv::Mat& mat)
+svm::sparse_vector classifier::features_to_svector(const cv::Mat& mat)
 {
 	assert(mat.channels() == hog::dimensions);
 	struct mat_iter

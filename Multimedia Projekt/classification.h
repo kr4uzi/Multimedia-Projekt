@@ -1,11 +1,12 @@
 #pragma once
 #include <deque>
 #include <opencv2/core/core.hpp>	// Mat
-#include <svm_light/svm.h>			// linear_model
-#include "inria.h"					// inria_cfg
+#include <svm_light/svm.h>			// linear_model, sparse_vector
 
 namespace mmp
 {
+	class inria_cfg;
+
 	class classifier
 	{
 	private:
@@ -15,8 +16,8 @@ namespace mmp
 		std::deque<svm::sparse_vector> positives;
 		std::deque<svm::sparse_vector> negatives;
 
-	public:
-		static svm::sparse_vector mat_to_svector(const cv::Mat& mat);
+	private:
+		static svm::sparse_vector features_to_svector(const cv::Mat& mat);
 
 	public:
 		classifier(classifier&& rhs);
