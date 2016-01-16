@@ -2,6 +2,7 @@
 #include "helpers.h"	// get_overlap, print_progress
 #include "classification.h"
 #include "log.h"
+#include "inria.h"
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>	// RNG
