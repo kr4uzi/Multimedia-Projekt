@@ -58,6 +58,11 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 {
 	log << to::both << "starting evaluation at: " << time_string() << std::endl;
 
+	//const auto positive_roi = cv::Rect(
+	//	cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
+	//	sliding_window::width, sliding_window::height
+	//);
+	//const auto positives = files_in_folder(cfg.normalized_positive_test_path());
 	const auto positives = files_in_folder(cfg.test_annotation_path());
 	const auto negatives = files_in_folder(cfg.negative_test_path());
 	const auto detection_threshold = -std::numeric_limits<double>::infinity();
@@ -91,13 +96,18 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 		std::vector<double> temp_labels;
 		for (auto& detection : img.get_detections())
 			temp_labels.push_back(img.is_valid_detection(detection.second->rect()) ? 1 : -1);
+		//hog hog(cv::imread(positives[i])(positive_roi));
+		//auto weight = c.classify(hog());
 
 #pragma omp critical
 		{
+			//labels.push_back(1);
+			//scores.push_back(weight);
 			labels.insert(labels.end(), temp_labels.begin(), temp_labels.end());
 
 			for (auto& detection : img.get_detections())
 				scores.push_back(detection.first);
+
 
 			print_progress("positives processed", ++processed, positives.size(), positives[i]);
 		}
@@ -226,7 +236,7 @@ void mat_plot::save(const std::string& filename) const
 		plot_file << labels_data[i] << ", ";
 
 		if (++i % 500 == 0)
-			std::cout << std::endl;
+			plot_file << std::endl;
 	}
 	plot_file << "];" << std::endl;
 
@@ -237,7 +247,7 @@ void mat_plot::save(const std::string& filename) const
 		plot_file << scores_data[i] << ", ";
 
 		if (++i % 500 == 0)
-			std::cout << std::endl;
+			plot_file << std::endl;
 	}
 	plot_file << "];" << std::endl;
 
