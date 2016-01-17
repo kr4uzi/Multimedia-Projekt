@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
 		raw_cfg.get_string("eval"), raw_cfg.get_string("eval_hard"),
 		raw_cfg.get_double("svm_c", 0.01),
 		raw_cfg.get_unsinged("randoms_per_negative", 10),
-		raw_cfg.get_unsinged("num_false_positives", 1280)
+		raw_cfg.get_unsinged("num_false_positives", 1218)
 	);
 
 	mmp::log << "MMP Markus Kraus" << std::endl;
