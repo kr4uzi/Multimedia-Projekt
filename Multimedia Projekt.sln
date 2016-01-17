@@ -10,6 +10,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Multimedia Projekt", "Multi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "svm_light", "svm_light\svm_light.vcxproj", "{3F2D1679-ABC2-42C5-8844-89BB69443CAA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{85BE738E-6789-4D84-9733-1FE915D1A577}"
+	ProjectSection(SolutionItems) = preProject
+		mmp.cfg = mmp.cfg
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
