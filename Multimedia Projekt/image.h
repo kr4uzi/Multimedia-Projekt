@@ -54,13 +54,13 @@ namespace mmp
 		std::vector<detection> detections;
 
 	private:
-		void add_detection(detection det);
+		void add_detection(detection det, float max_overlap);
 
 	public:
 		image(cv::Mat img);
 
 		const std::vector<detection>& get_detections() const { return detections; }
-		void detect_all(const classifier& c, double threshold = 0);
+		void detect_all(const classifier& c, double detection_threshold = 0, float max_overlap = 0.2f);
 		void suppress_non_maximum(float min_overlap = 0.2f);		
 
 		const std::vector<scaled_image>& scaled_images() const { return images; }

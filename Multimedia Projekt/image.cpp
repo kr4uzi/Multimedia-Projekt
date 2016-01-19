@@ -48,18 +48,18 @@ image::image(cv::Mat src)
 		scale = scales[i];
 		auto mod = i % scales_per_octave;
 		if (mod == 0)
-			cv::resize(src, src, cv::Size(), 0.5f, 0.5f);
+			cv::resize(src, src, cv::Size(src.cols / 2.0f, src.rows / 2.0f));
 		
-		cv::resize(src, work, cv::Size(), 1 / scales[mod], 1 / scales[mod]);
+		cv::resize(src, work, cv::Size(src.cols / scales[mod], src.rows / scales[mod]));
 	}
 }
 
-void image::add_detection(detection det)
+void image::add_detection(detection det, float max_overlap)
 {
 	bool overlapped = false;
 	for (unsigned i = 0; i < detections.size(); i++)
 	{
-		if (get_overlap(detections[i].second->rect(), det.second->rect()) >= 0.2f)
+		if (get_overlap(detections[i].second->rect(), det.second->rect()) >= max_overlap)
 		{
 			overlapped = true;
 
@@ -98,7 +98,7 @@ void image::suppress_non_maximum(float min_overlap)
 	detections.erase(std::remove_if(detections.begin(), detections.end(), marked_for_deletion), detections.end());
 }
 
-void image::detect_all(const classifier& c, double threshold)
+void image::detect_all(const classifier& c, double threshold, float max_overlap)
 {
 	for (auto& s : scaled_images())
 	{
@@ -106,7 +106,7 @@ void image::detect_all(const classifier& c, double threshold)
 		{
 			double a = c.classify(sw.features());
 			if (a > threshold)
-				add_detection(std::make_pair(a, &sw));
+				add_detection(std::make_pair(a, &sw), max_overlap);
 		}
 	}
 }
