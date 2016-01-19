@@ -123,7 +123,7 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	for (long i = 0; i < negatives.size(); i++)
 	{
 		image img(cv::imread(negatives[i]));
-		img.detect_all(c, detection_threshold, -1);
+		img.detect_all(c, detection_threshold, 1.01f);
 		//img.suppress_non_maximum();
 
 #pragma omp critical
