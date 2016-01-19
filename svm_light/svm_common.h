@@ -34,7 +34,7 @@
                              /* kernel evaluations. Using float saves */
                              /* us some memory, but you can use double, too */
 # define FNUM    long        /* the type used for storing feature ids */
-# define FVAL    double      /* the type used for storing feature values */
+# define FVAL    float       /* the type used for storing feature values */
 # define MAXFEATNUM 99999999 /* maximum feature number (must be in
 			  	valid range of FNUM type and long int!) */
 
