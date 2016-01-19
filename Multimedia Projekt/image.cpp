@@ -81,6 +81,8 @@ void image::suppress_non_maximum(float min_overlap)
 	
 	for (auto i = detections.begin(); i != detections.end(); ++i)
 	{
+		if (i->first == 0) continue;
+
 		for (auto j = i + 1; j != detections.end(); ++j)
 		{
 			if (j->first == 0) continue;
