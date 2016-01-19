@@ -17,57 +17,11 @@ hog::array_type hog::vlarray_to_cvstylevec(const array_type& vlarray, array_type
 	return cstylevec;
 }
 
-hog::array_type hog::cvmat_to_vlarray(const cv::Mat& mat)
-{
-	const int channels = mat.channels();
-
-	std::vector<float> vlarray(channels * mat.rows * mat.cols);
-	auto dataptr = vlarray.data();
-
-	for (int c = 0; c < channels; c++)
-	{
-		for (int y = 0; y < mat.rows; y++)
-		{
-			auto yptr = mat.ptr<float>(y) + c;
-			for (int x = 0; x < mat.cols; x++)
-			{
-				*dataptr++ = *yptr;
-				yptr += channels;
-			}
-		}
-	}
-
-	return vlarray;
-}
-
-hog::array_type hog::cvimg_to_vlarray(const cv::Mat& mat)
-{
-	assert((mat.type() == CV_8UC1 || mat.type() == CV_8UC3) && "input image type has to be unsigned char");
-	const int channels = mat.channels();
-
-	std::vector<float> vlarray(channels * mat.rows * mat.cols);
-	auto dataptr = vlarray.data();
-
-	for (int c = 0; c < channels; c++)
-	{
-		for (int y = 0; y < mat.rows; y++)
-		{
-			auto yptr = mat.ptr<uchar>(y) + c;
-			for (int x = 0; x < mat.cols; x++)
-			{
-				*dataptr++ = *yptr / 255.0f;
-				yptr += channels;
-			}
-		}
-	}
-
-	return vlarray;
-}
-
 hog::hog(const cv::Mat& src)
 	: _hog(vl_hog_new(VlHogVariant::VlHogVariantUoctti, orientations, VL_FALSE))
 {
-	auto img_converted = cvimg_to_vlarray(src);
+	assert(src.type() == CV_8UC1 || src.type() == CV_8UC3);
+	auto img_converted = cvmat_to_vlarray<uchar>(src);
 	vl_hog_put_image((VlHog *)_hog, img_converted.data(), src.cols, src.rows, src.channels(), cellsize);
 	hog_width = vl_hog_get_width((VlHog *)_hog);
 	hog_height = vl_hog_get_height((VlHog *)_hog);
@@ -93,7 +47,8 @@ cv::Mat hog::render() const
 
 cv::Mat hog::render(const cv::Mat& mat) const
 {
-	std::vector<float> hog_array = cvmat_to_vlarray(mat);
+	assert(mat.type() == CV_32FC(int(dimensions)));
+	std::vector<float> hog_array = cvmat_to_vlarray<float>(mat);
 	std::vector<float> img(mat.cols * hog_glyph_size * mat.rows * hog_glyph_size);
 	vl_hog_render((VlHog *)_hog, img.data(), hog_array.data(), mat.cols, mat.rows);
 	auto image = cv::Mat(int(hog_glyph_size * mat.rows), int(hog_glyph_size * mat.cols), CV_32FC1, img.data());
@@ -106,6 +61,10 @@ const cv::Mat hog::operator()(const cv::Rect& roi) const
 	const int from_y = (roi.y + cellsize / 2) / cellsize;
 	const int to_x = ((roi.x + roi.width) + cellsize / 2) / cellsize;
 	const int to_y = ((roi.y + roi.height) + cellsize / 2) / cellsize;
+	assert(from_x == (roi.x / cellsize));
+	assert(from_y == (roi.y / cellsize));
+	assert(to_x == ((roi.x + roi.width) / cellsize));
+	assert(to_y == ((roi.y + roi.height) / cellsize));
 	return hog_converted(cv::Rect(cv::Point(from_x, from_y), cv::Point(to_x, to_y)));
 }
 
