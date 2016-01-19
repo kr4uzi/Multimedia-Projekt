@@ -58,12 +58,12 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 {
 	log << to::both << "starting evaluation at: " << time_string() << std::endl;
 
-	//const auto positive_roi = cv::Rect(
-	//	cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
-	//	sliding_window::width, sliding_window::height
-	//);
-	//const auto positives = files_in_folder(cfg.normalized_positive_test_path());
-	const auto positives = files_in_folder(cfg.test_annotation_path());
+	const auto positive_roi = cv::Rect(
+		cfg.normalized_positive_test_x_offset(), cfg.normalized_positive_test_y_offset(),
+		sliding_window::width, sliding_window::height
+	);
+	const auto positives = files_in_folder(cfg.normalized_positive_test_path());
+	//const auto positives = files_in_folder(cfg.test_annotation_path());
 	const auto negatives = files_in_folder(cfg.negative_test_path());
 	const auto detection_threshold = -std::numeric_limits<double>::infinity();
 	unsigned long processed = 0;
@@ -74,41 +74,42 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 #pragma omp parallel for schedule(static)
 	for (long i = 0; i < positives.size(); i++)
 	{
-		mmp::annotation::file annotation;
-		auto parse_error = mmp::annotation::file::parse(positives[i], annotation);
-		if (!!parse_error)
-		{
+//		mmp::annotation::file annotation;
+//		auto parse_error = mmp::annotation::file::parse(positives[i], annotation);
+//		if (!!parse_error)
+//		{
+//#pragma omp critical
+//			{
+//				mmp::log << to::both << "error parsing [" << positives[i] << "]: " << parse_error.error_msg() << std::endl;
+//
+//#pragma omp flush(processed)
+//				++processed;
+//			}
+//
+//			continue;
+//		}
+//
+//		annotated_image img(annotation, cv::imread(cfg.root_path() + "/" + annotation.get_image_filename()));
+//		img.detect_all(c, detection_threshold);
+//		img.suppress_non_maximum();
+//
+//		std::vector<double> temp_labels;
+//		for (auto& detection : img.get_detections())
+//			temp_labels.push_back(img.is_valid_detection(detection.second->rect()) ? 1 : -1);
+		hog hog(cv::imread(positives[i])(positive_roi));
+		auto weight = c.classify(hog());
+
 #pragma omp critical
-			{
-				mmp::log << to::both << "error parsing [" << positives[i] << "]: " << parse_error.error_msg() << std::endl;
+		{
+//			labels.insert(labels.end(), temp_labels.begin(), temp_labels.end());
+//
+//			for (auto& detection : img.get_detections())
+//				scores.push_back(detection.first);
+
+			labels.push_back(1);
+			scores.push_back(weight);
 
 #pragma omp flush(processed)
-				++processed;
-			}
-
-			continue;
-		}
-
-		annotated_image img(annotation, cv::imread(cfg.root_path() + "/" + annotation.get_image_filename()));
-		img.detect_all(c, detection_threshold);
-		img.suppress_non_maximum();
-
-		std::vector<double> temp_labels;
-		for (auto& detection : img.get_detections())
-			temp_labels.push_back(img.is_valid_detection(detection.second->rect()) ? 1 : -1);
-		//hog hog(cv::imread(positives[i])(positive_roi));
-		//auto weight = c.classify(hog());
-
-#pragma omp critical
-		{
-			//labels.push_back(1);
-			//scores.push_back(weight);
-			labels.insert(labels.end(), temp_labels.begin(), temp_labels.end());
-
-			for (auto& detection : img.get_detections())
-				scores.push_back(detection.first);
-
-
 			print_progress("positives processed", ++processed, positives.size(), positives[i]);
 		}
 	}
@@ -122,8 +123,8 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	for (long i = 0; i < negatives.size(); i++)
 	{
 		image img(cv::imread(negatives[i]));
-		img.detect_all(c, detection_threshold);
-		img.suppress_non_maximum();
+		img.detect_all(c, detection_threshold, -1);
+		//img.suppress_non_maximum();
 
 #pragma omp critical
 		{
@@ -236,7 +237,7 @@ void mat_plot::save(const std::string& filename) const
 		plot_file << labels_data[i] << ", ";
 
 		if (++i % 500 == 0)
-			plot_file << std::endl;
+			plot_file << "..." << std::endl;
 	}
 	plot_file << "];" << std::endl;
 
@@ -247,7 +248,7 @@ void mat_plot::save(const std::string& filename) const
 		plot_file << scores_data[i] << ", ";
 
 		if (++i % 500 == 0)
-			plot_file << std::endl;
+			plot_file << "..." << std::endl;
 	}
 	plot_file << "];" << std::endl;
 
