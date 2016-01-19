@@ -44,8 +44,29 @@ namespace mmp
 		// 123 123 123 => 111 222 333
 		// 123 123 123    111 222 333
 		//
-		static array_type cvmat_to_vlarray(const cv::Mat& mat);	// convert a float cv::Mat to float vlarray
-		static array_type cvimg_to_vlarray(const cv::Mat& mat); // like above but used to convert a (uchar) RGB image to float RGB vlarray
+		template<class T>
+		static array_type cvmat_to_vlarray(const cv::Mat& mat)	// convert a float cv::Mat to float vlarray
+		{
+			const int channels = mat.channels();
+
+			std::vector<float> vlarray(channels * mat.rows * mat.cols);
+			auto dataptr = vlarray.data();
+
+			for (int c = 0; c < channels; c++)
+			{
+				for (int y = 0; y < mat.rows; y++)
+				{
+					auto yptr = mat.ptr<T>(y) + c;
+					for (int x = 0; x < mat.cols; x++)
+					{
+						*dataptr++ = *yptr;
+						yptr += channels;
+					}
+				}
+			}
+
+			return vlarray;
+		}
 
 	public:
 		static std::size_t hog_size(const cv::Rect& roi);
