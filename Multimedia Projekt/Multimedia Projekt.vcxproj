@@ -31,8 +31,8 @@
     <ClCompile Include="classification.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="evaluation.cpp" />
-    <ClCompile Include="extraction.cpp" />
     <ClCompile Include="helpers.cpp" />
+    <ClCompile Include="hog.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="inria.cpp" />
     <ClCompile Include="log.cpp" />
