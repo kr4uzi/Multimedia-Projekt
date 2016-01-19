@@ -5,7 +5,6 @@
 #include "annotation.h"			// annotation::file
 #include "evaulation.h"			// qualitative_evaluator, quantitative_evaluator, mat_plot
 #include "log.h"
-#include <cstdlib>				// system
 #include <iostream>				// endl
 #include <thread>
 
@@ -159,6 +158,9 @@ int main(int argc, char ** argv)
 #ifdef WITH_MATLAB
 	// dont close the plots
 	if (!raw_cfg.get_bool("skip_eval") || !raw_cfg.get_bool("skip_eval_hard"))
-		std::system("pause");
+	{
+		mmp::log << mmp::to::console << "Press enter to exit ...";
+		std::cin.get();
+	}
 #endif
 }
