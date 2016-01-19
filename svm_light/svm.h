@@ -11,6 +11,7 @@ namespace svm
 	{
 	public:
 		typedef long size_type;
+		typedef float value_type;
 
 		class const_iterator
 		{
@@ -25,7 +26,7 @@ namespace svm
 			bool operator==(const const_iterator& rhs) const { return _ptr == rhs._ptr; }
 			bool operator!=(const const_iterator& rhs) const { return !(*this == rhs); }
 			void operator++();
-			float operator*() const;
+			value_type operator*() const;
 		};
 
 	private:
@@ -34,11 +35,11 @@ namespace svm
 		void * _words_end;
 
 	private:
-		typedef std::pair<size_type, float> word;
+		typedef std::pair<size_type, value_type> word;
 		static void svector_init(void ** svector, const std::vector<word>& words, void ** words_end);
 
 	public:
-		sparse_vector(const sparse_vector& rhs);
+		//sparse_vector(const sparse_vector& rhs);
 		sparse_vector(sparse_vector&& rhs);
 		sparse_vector& operator=(sparse_vector&& rhs);
 
@@ -47,6 +48,7 @@ namespace svm
 			: _size(size)
 		{
 			std::vector<word> words;
+			words.reserve(size);
 			size_type i = 1;
 			while (begin != end)
 			{
