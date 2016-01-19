@@ -48,12 +48,12 @@ void sparse_vector::const_iterator::operator++()
 	_ptr = ++word;
 }
 
-float sparse_vector::const_iterator::operator*() const
+sparse_vector::value_type sparse_vector::const_iterator::operator*() const
 {
 	// even though FVAL might be double a conversation to float
 	// does not result in information loss because sparse_vector
 	// doesn't fill it with doubles in the first place
-	return (float)((WORD *)_ptr)->weight;
+	return ((WORD *)_ptr)->weight;
 }
 
 sparse_vector::size_type sparse_vector::const_iterator::index() const
@@ -94,17 +94,17 @@ sparse_vector& sparse_vector::operator=(sparse_vector&& rhs)
 	return *this;
 }
 
-sparse_vector::sparse_vector(const sparse_vector& rhs)
-	: _size(rhs._size)
-{
-	auto svector = copy_svector((SVECTOR *)rhs._svector);
-	WORD * end = svector->words;
-	while (end->wnum)
-		++end;
-
-	_svector = svector;
-	_words_end = end;
-}
+//sparse_vector::sparse_vector(const sparse_vector& rhs)
+//	: _size(rhs._size)
+//{
+//	auto svector = copy_svector((SVECTOR *)rhs._svector);
+//	WORD * end = svector->words;
+//	while (end->wnum)
+//		++end;
+//
+//	_svector = svector;
+//	_words_end = end;
+//}
 
 sparse_vector::sparse_vector(sparse_vector&& rhs)
 	: _svector(rhs._svector), _words_end(rhs._words_end), _size(rhs._size)
