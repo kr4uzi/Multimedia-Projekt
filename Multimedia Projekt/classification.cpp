@@ -37,17 +37,13 @@ classifier::~classifier()
 
 void classifier::train()
 {
-	log << to::both << "starting training at: " << time_string() << std::endl;
-	
-	const auto negative_filenames = files_in_folder(cfg.negative_train_path());
-	const auto positive_filenames = files_in_folder(cfg.normalized_positive_train_path());
-	const auto vec_size = (svm::sparse_vector::size_type)hog::hog_size(cv::Rect(0, 0, mmp::sliding_window::width, mmp::sliding_window::height));
-	const auto hogs_per_negative = cfg.random_windows_per_negative_training_sample();
+	log << to::both << "starting training at: " << time_string() << std::endl;	
 	unsigned long processed = 0;
 
 	//
 	// positives
 	//
+	const auto positive_filenames = files_in_folder(cfg.normalized_positive_train_path());
 	const cv::Rect positive_roi(
 		cfg.normalized_positive_training_x_offset(), cfg.normalized_positive_training_y_offset(), // both should be 16
 		sliding_window::width, sliding_window::height
@@ -72,6 +68,8 @@ void classifier::train()
 	// negatives
 	//
 	processed = 0;
+	const auto negative_filenames = files_in_folder(cfg.negative_train_path());
+	const auto hogs_per_negative = cfg.random_windows_per_negative_training_sample();
 
 #pragma omp parallel for schedule(dynamic, 50)
 	for (long i = 0; i < negative_filenames.size(); i++)
@@ -116,12 +114,11 @@ void classifier::train()
 	//
 	// train svm
 	//
-	{
-		log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
-		model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
-		model->save(cfg.svm_file());
-		log << "done" << std::endl << std::endl;		
-	}
+	const auto vec_size = (svm::sparse_vector::size_type)hog::hog_size(cv::Rect(0, 0, mmp::sliding_window::width, mmp::sliding_window::height));
+	log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
+	model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
+	model->save(cfg.svm_file());
+	log << "done" << std::endl << std::endl;		
 	
 	//
 	// hard mining (false positives)
@@ -166,18 +163,16 @@ void classifier::train()
 	}
 
 	for (auto& detection : detections)
-		negatives.push_back(detection.second);
+		negatives.push_back(std::move(const_cast<weighted_svec&>(detection).second));
 
 	//
 	// hard train svm
 	//
-	{
-		log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
-		delete model;
-		model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
-		model->save(cfg.svm_file_hard());	
-		log << "done" << std::endl << "training finished at: " << time_string() << std::endl;
-	}
+	log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
+	delete model;
+	model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
+	model->save(cfg.svm_file_hard());	
+	log << "done" << std::endl << "training finished at: " << time_string() << std::endl;
 }
 
 double classifier::classify(const cv::Mat& mat) const
