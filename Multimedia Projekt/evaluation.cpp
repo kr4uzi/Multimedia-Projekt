@@ -1,6 +1,6 @@
 #include "evaulation.h"
 #include "helpers.h"	// get_overlap, print_progress
-#include "classification.h"
+#include "classifier.h"
 #include "log.h"
 #include "inria.h"
 
@@ -90,7 +90,7 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 //		}
 //
 //		annotated_image img(annotation, cv::imread(cfg.root_path() + "/" + annotation.get_image_filename()));
-//		img.detect_all(c, detection_threshold);
+//		img.detect_all(c, detection_threshold, 1.01f);
 //		img.suppress_non_maximum();
 //
 //		std::vector<double> temp_labels;
@@ -236,7 +236,7 @@ void mat_plot::save(const std::string& filename) const
 	{
 		plot_file << labels_data[i] << ", ";
 
-		if (++i % 500 == 0)
+		if (++i % 25 == 0)
 			plot_file << "..." << std::endl;
 	}
 	plot_file << "];" << std::endl;
@@ -247,7 +247,7 @@ void mat_plot::save(const std::string& filename) const
 	{
 		plot_file << scores_data[i] << ", ";
 
-		if (++i % 500 == 0)
+		if (++i % 25 == 0)
 			plot_file << "..." << std::endl;
 	}
 	plot_file << "];" << std::endl;
