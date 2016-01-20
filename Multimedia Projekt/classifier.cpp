@@ -38,6 +38,7 @@ classifier::~classifier()
 
 void classifier::train()
 {
+	to target = log >> target;
 	log << to::both << "starting training at: " << time_string() << std::endl;	
 	unsigned long processed = 0;
 
@@ -174,6 +175,7 @@ void classifier::train()
 	model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
 	model->save(cfg.svm_file_hard());	
 	log << "done" << std::endl << "training finished at: " << time_string() << std::endl;
+	log << target;
 }
 
 double classifier::classify(const cv::Mat& mat) const

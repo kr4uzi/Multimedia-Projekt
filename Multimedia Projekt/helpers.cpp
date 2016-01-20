@@ -70,10 +70,12 @@ void mmp::print_progress(const std::string& info, unsigned long value, std::size
 	// fill with whitespaces to overwrite previous long message (carriage return)
 	message.resize(line_length - 1, ' ');
 
+	to target = log >> target;
 	if (value == max)
 		log << to::both << message << std::endl;
 	else
 		log << to::console << message << "\r";
+	log << target;
 }
 
 std::string mmp::time_string()

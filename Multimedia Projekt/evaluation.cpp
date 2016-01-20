@@ -56,6 +56,7 @@ bool annotated_image::is_valid_detection(const cv::Rect& rect) const
 quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const classifier& c)
 	: svm(c)
 {
+	to target = log >> target;
 	log << to::both << "starting evaluation at: " << time_string() << std::endl;
 
 	const auto positive_roi = cv::Rect(
@@ -140,6 +141,7 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	}
 
 	log << to::both << "evaluation finished at: " << time_string() << std::endl;
+	log << target;
 }
 
 mat_plot::mat_plot()
@@ -261,6 +263,7 @@ void mat_plot::save(const std::string& filename) const
 qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const classifier& c, const classifier& c_hard)
 {
 	auto positives = mmp::files_in_folder(cfg.test_annotation_path());
+	to target = log >> target;
 	log << to::console << "close windows to stop randomly selecting a image for qualitative evaluation" << std::endl;
 
 	do
@@ -284,6 +287,7 @@ qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const cl
 		else
 			log << to::both << "error parsing file: " << parse_error.error_msg() << std::endl;
 	} while (cv::waitKey() != -1);
+	log << target;
 }
 
 void qualitative_evaluator::show_detections(const classifier& c, annotation::file& ann, cv::Mat src, const std::string& windowname)

@@ -23,6 +23,8 @@ namespace mmp
 		logger(const std::string& filename);
 		~logger();
 
+		to& operator>>(to& t) const { return t = target; }
+
 		logger& operator<<(const to& val)
 		{
 			target = val;
