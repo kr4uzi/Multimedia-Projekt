@@ -74,7 +74,7 @@ void sparse_vector::svector_init(void ** svector, const std::vector<sparse_vecto
 	w.wnum = 0;
 	_words.push_back(std::move(w));
 
-	auto vec = create_svector(_words.data(), "", 1);
+	auto vec = create_svector(_words.data(), const_cast<char *>(""), 1);
 	*svector = vec;
 
 	WORD * end = vec->words;
