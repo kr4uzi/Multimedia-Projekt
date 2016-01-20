@@ -10,6 +10,7 @@
 #include <ctime>		// time
 #include <iterator>		// back_inserter, advance, make_move_iterator
 #include <set>
+#include <exception>
 using namespace mmp;
 
 namespace
@@ -177,7 +178,7 @@ void classifier::train()
 
 double classifier::classify(const cv::Mat& mat) const
 {
-	if (!model) throw std::exception("classifier not loaded or trained");
+	if (!model) throw std::logic_error("classifier not loaded or trained");
 	return model->classify(features_to_svector(mat));
 }
 
