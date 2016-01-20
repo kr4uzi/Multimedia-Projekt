@@ -1,4 +1,4 @@
-#include "classification.h"
+#include "classifier.h"
 #include "image.h"
 #include "hog.h"
 #include "helpers.h"
@@ -24,7 +24,7 @@ classifier::classifier(const inria_cfg& c)
 }
 
 classifier::classifier(classifier&& rhs)
-	: cfg(rhs.cfg), model(std::move(rhs.model)), negatives(std::move(rhs.negatives)), positives(std::move(rhs.positives))
+	: cfg(rhs.cfg), model(std::move(rhs.model)), positives(std::move(rhs.positives)), negatives(std::move(rhs.negatives))
 {
 
 }
@@ -194,7 +194,7 @@ svm::sparse_vector classifier::features_to_svector(const cv::Mat& mat)
 		cv::MatConstIterator_<hog::vector_type> iter;
 		int c;
 
-		mat_iter(const cv::MatConstIterator_<hog::vector_type>& _iter) : c(0), iter(_iter) { }
+		mat_iter(const cv::MatConstIterator_<hog::vector_type>& _iter) : iter(_iter), c(0) { }
 
 		float operator*() const { return (*iter)[c]; }
 		void operator++() 
