@@ -1,8 +1,8 @@
 #pragma once
 #include <opencv2/core/core.hpp>	// Rect, Mat
 #include <vector>
-#include <utility>		// pair, move
-#include <memory>		// shared_ptr
+#include <utility>		// pair
+#include <memory>		// shared_ptr, const_pointer_cast
 #include "hog.h"
 
 namespace mmp
