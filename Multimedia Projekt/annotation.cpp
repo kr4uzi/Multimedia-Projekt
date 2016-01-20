@@ -77,7 +77,7 @@ parse_error file::parse(const std::string& filename, file& annotation)
 		{
 			unsigned id = std::stoul(match[1]);
 
-			auto& iter = std::find_if(annotation.objects.begin(), annotation.objects.end(), [id](element& el) { return el.id == id; });
+			auto iter = std::find_if(annotation.objects.begin(), annotation.objects.end(), [id](element& el) { return el.id == id; });
 			if (iter != annotation.objects.end())
 				iter->center = cv::Point(std::stoul(match[3]), std::stoul(match[4]));
 			else
@@ -87,7 +87,7 @@ parse_error file::parse(const std::string& filename, file& annotation)
 		{
 			unsigned id = std::stoul(match[1]);
 
-			auto& iter = std::find_if(annotation.objects.begin(), annotation.objects.end(), [id](element& el) { return el.id == id; });
+			auto iter = std::find_if(annotation.objects.begin(), annotation.objects.end(), [id](element& el) { return el.id == id; });
 			if (iter != annotation.objects.end())
 				iter->bounding_box = cv::Rect(cv::Point(std::stoul(match[3]), std::stoul(match[4])), cv::Point(std::stoul(match[5]), std::stoul(match[6])));
 			else
