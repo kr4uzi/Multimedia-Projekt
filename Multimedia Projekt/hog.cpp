@@ -61,10 +61,6 @@ const cv::Mat hog::operator()(const cv::Rect& roi) const
 	const int from_y = (roi.y + cellsize / 2) / cellsize;
 	const int to_x = ((roi.x + roi.width) + cellsize / 2) / cellsize;
 	const int to_y = ((roi.y + roi.height) + cellsize / 2) / cellsize;
-	assert(from_x == (roi.x / cellsize));
-	assert(from_y == (roi.y / cellsize));
-	assert(to_x == ((roi.x + roi.width) / cellsize));
-	assert(to_y == ((roi.y + roi.height) / cellsize));
 	return hog_converted(cv::Rect(cv::Point(from_x, from_y), cv::Point(to_x, to_y)));
 }
 
