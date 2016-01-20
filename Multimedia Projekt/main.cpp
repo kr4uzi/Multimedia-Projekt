@@ -1,7 +1,7 @@
 #include "config.h"				// config
 #include "inria.h"				// inria_cfg
 #include "helpers.h"			// files_in_folder, path_exists, time_string
-#include "classification.h"		// classifier
+#include "classifier.h"		// classifier
 #include "annotation.h"			// annotation::file
 #include "evaulation.h"			// qualitative_evaluator, quantitative_evaluator, mat_plot
 #include "log.h"

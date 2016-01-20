@@ -2,7 +2,7 @@
 #include "helpers.h"
 #include "hog.h"
 #include "scale_cache.h"
-#include "classification.h"
+#include "classifier.h"
 #include <opencv2/imgproc/imgproc.hpp>	// resize
 #include <algorithm>					// sort, remove_if
 #include <boost/bind.hpp>
