@@ -269,6 +269,7 @@ qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const cl
 	do
 	{
 		auto filename = positives[rng.uniform(0, (int)positives.size())];
+		//std::string filename("C:/mmp/INRIAPerson/Test/annotations/person_132.txt");
 
 		mmp::annotation::file annotation;
 		auto parse_error = mmp::annotation::file::parse(filename, annotation);
@@ -319,7 +320,7 @@ void qualitative_evaluator::show_detections(const classifier& c, annotation::fil
 
 		// for readability put the strings on a monochromatic rectangle
 		auto box_size = cv::getTextSize(dist_str.length() > overlap_str.length() ? dist_str : overlap_str, cv::FONT_HERSHEY_PLAIN, 0.7, 1, nullptr);
-		cv::rectangle(src, cv::Rect(detection_window.x, detection_window.y, box_size.width + 1, 18), cv::Scalar(255, 255, 255), -1);
+		cv::rectangle(src, cv::Rect(detection_window.x, detection_window.y, box_size.width + 2, 20), cv::Scalar(255, 255, 255), -1);
 		
 		cv::Scalar color;
 		if (img.is_valid_detection(d.second->rect()))
