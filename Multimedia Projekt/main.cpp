@@ -2,7 +2,6 @@
 #include "inria.h"			// inria_cfg
 #include "helpers.h"		// files_in_folder, path_exists, time_string
 #include "classifier.h"		// classifier
-#include "annotation.h"		// annotation::file
 #include "evaulation.h"		// qualitative_evaluator, quantitative_evaluator, mat_plot
 #include "log.h"
 #include <iostream>			// endl
@@ -79,7 +78,7 @@ int main(int argc, char ** argv)
 	bool skip_eval_qual = raw_cfg.get_bool("skip_eval_qual");
 
 	//
-	// validate paths
+	// validate required paths and files
 	//
 	if (!skip_training)
 	{
@@ -88,14 +87,15 @@ int main(int argc, char ** argv)
 			mmp::log << "invalid root folder specified (train path(s) not found)!" << std::endl;
 			return 1;
 		}
-
-		mmp::classifier(cfg).train();
-		mmp::log << mmp::to::both << std::endl;
 	}
 
 	if (!skip_eval || !skip_eval_qual)
 	{
-		if (!mmp::path_exists(cfg.svm_file()) || !mmp::path_exists(cfg.svm_file_hard()))
+		// if we skip training (the both svm files are created in that process) and 
+		// one of the required files are not existing we exit
+		// the required paths are checked below because we only check for svm files here
+		if (skip_training &&
+			(!mmp::path_exists(cfg.svm_file()) || !mmp::path_exists(cfg.svm_file_hard())))
 		{
 			mmp::log << "svm file [" << cfg.svm_file() << "] or hard svm file [" << cfg.svm_file_hard() << "] not found!" << std::endl;
 			return 1;
@@ -104,6 +104,7 @@ int main(int argc, char ** argv)
 
 	if (!skip_eval)
 	{
+		// existence of svm files has been checked above
 		if (!mmp::path_exists(cfg.normalized_positive_test_path()) || !mmp::path_exists(cfg.negative_test_path()))
 		{
 			mmp::log << "invalid root folder specified (test path(s) not found)!" << std::endl;
@@ -113,6 +114,7 @@ int main(int argc, char ** argv)
 
 	if (!skip_eval_qual)
 	{
+		// existence of svm files has been checked above
 		if (!mmp::path_exists(cfg.test_annotation_path()))
 		{
 			mmp::log << "invalid root folder specified (test path not found)!" << std::endl;
@@ -120,17 +122,28 @@ int main(int argc, char ** argv)
 		}
 	}
 
+	//
+	// actual program
+	//
 	mmp::classifier c_normal(cfg);
 	mmp::classifier c_hard(cfg);
 
 	mmp::log << "MMP Markus Kraus" << std::endl;
 	mmp::log << "started at: " << mmp::time_string() << std::endl << std::endl;
 
+	if (!skip_training)
+	{
+		mmp::log << "############ training ############" << std::endl;
+		mmp::classifier(cfg).train();
+		mmp::log << std::endl;
+	}
+
 	//
 	// load and validate svm_files
 	//
 	if (!skip_eval || !skip_eval_qual)
 	{
+		mmp::log << "########### evaluation ###########" << std::endl;
 		mmp::log << "loading svm files ..." << std::endl;
 		std::thread thn = std::thread([&c_normal]() { c_normal.load(); });
 		std::thread thh = std::thread([&c_hard]() { c_hard.load(true); });
@@ -171,7 +184,7 @@ int main(int argc, char ** argv)
 	}
 
 #ifdef WITH_MATLAB
-	// dont close the plots
+	// let the user work with the plots
 	if (!skip_eval)
 	{
 		mmp::log << mmp::to::console << "Press enter to exit ...";
