@@ -146,9 +146,12 @@ svm::linear_model::linear_model(const std::string& filename)
 {
 	_model = read_model(const_cast<char *>(filename.c_str()));
 	add_weight_vector_to_linear_model((MODEL *)_model);
+	_linear_weights = ((MODEL *)_model)->lin_weights;
+	vec_size = ((MODEL *)_model)->totwords;
+	_b = ((MODEL *)_model)->b;
 }
 
-void svm::linear_model::model_init(void ** model, std::vector<void *>& docs, std::vector<double>& targets, sparse_vector::size_type vec_size, double c)
+void svm::linear_model::model_init(void ** model, double ** linear_weights, double * b, std::vector<void *>& docs, std::vector<double>& targets, sparse_vector::size_type vec_size, double c)
 {
 	LEARN_PARM learn_param;
 	KERNEL_PARM kernel_param;
@@ -164,6 +167,8 @@ void svm::linear_model::model_init(void ** model, std::vector<void *>& docs, std
 	add_weight_vector_to_linear_model(mod);
 	// copy the model so we have our own copy of the support vectors
 	*model = copy_model(mod);
+	*linear_weights = ((MODEL *)*model)->lin_weights;
+	*b = ((MODEL *)*model)->b;
 
 	free_model(mod, 0);
 	for (auto& doc : docs)
@@ -183,6 +188,7 @@ void svm::linear_model::save(const std::string& filename) const
 
 double svm::linear_model::classify(const sparse_vector& svec) const
 {
+	assert(svec.size() <= vec_size && "Invalid vec size!");
 	auto doc = create_doc(-1, svec, 0);
 	double value = classify_example_linear((MODEL *)_model, (DOC *)doc);
 	free_example((DOC *)doc, 0);
