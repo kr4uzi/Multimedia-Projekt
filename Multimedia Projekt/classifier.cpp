@@ -16,6 +16,26 @@ using namespace mmp;
 namespace
 {
 	cv::RNG rng = std::time(nullptr);
+
+	struct mat_iter
+	{
+		cv::MatConstIterator_<hog::vector_type> iter;
+		int c;
+
+		mat_iter(const cv::MatConstIterator_<hog::vector_type>& _iter) : iter(_iter), c(0) { }
+
+		float operator*() const { return (*iter)[c]; }
+		void operator++() 
+		{
+			if (++c % hog::dimensions == 0) 
+			{ 
+				++iter; 
+				c = 0; 
+			}
+		}
+
+		bool operator!=(const mat_iter& rhs) { return iter != rhs.iter; }
+	};
 }
 
 classifier::classifier(const inria_cfg& c)
@@ -120,7 +140,7 @@ void classifier::train()
 	log << to::both << "training svm with " << positives.size() << " positives and " << negatives.size() << " negatives ... ";
 	model = new svm::linear_model(positives, negatives, vec_size, cfg.svm_c());
 	model->save(cfg.svm_file());
-	log << "done" << std::endl << std::endl;		
+	log << "done" << std::endl;		
 	
 	//
 	// hard mining (false positives)
@@ -181,7 +201,15 @@ void classifier::train()
 double classifier::classify(const cv::Mat& mat) const
 {
 	if (!model) throw std::logic_error("classifier not loaded or trained");
-	return model->classify(features_to_svector(mat));
+	//return model->classify(features_to_svector(mat));
+
+	assert(mat.channels() == hog::dimensions && "Parameters is not a mat returned by mmp::hog!");
+	assert(mat.channels() * mat.rows * mat.cols == model->get_vec_size() && "Parameter not from a sliding window (64x128)!");
+
+	return model->classify(
+		mat_iter(mat.begin<hog::vector_type>()), 
+		mat_iter(mat.end<hog::vector_type>())
+	);
 }
 
 void classifier::load(bool hard)
@@ -192,26 +220,7 @@ void classifier::load(bool hard)
 svm::sparse_vector classifier::features_to_svector(const cv::Mat& mat)
 {
 	assert(mat.channels() == hog::dimensions);
-	struct mat_iter
-	{
-		cv::MatConstIterator_<hog::vector_type> iter;
-		int c;
-
-		mat_iter(const cv::MatConstIterator_<hog::vector_type>& _iter) : iter(_iter), c(0) { }
-
-		float operator*() const { return (*iter)[c]; }
-		void operator++() 
-		{
-			if (++c % hog::dimensions == 0) 
-			{ 
-				++iter; 
-				c = 0; 
-			}
-		}
-
-		bool operator!=(const mat_iter& rhs) { return iter != rhs.iter; }
-	};
-
+	
 	return svm::sparse_vector(
 		mat_iter(mat.begin<hog::vector_type>()), 
 		mat_iter(mat.end<hog::vector_type>()),
