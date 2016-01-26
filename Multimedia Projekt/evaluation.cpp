@@ -75,38 +75,11 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 #pragma omp parallel for schedule(static)
 	for (long i = 0; i < positives.size(); i++)
 	{
-//		mmp::annotation::file annotation;
-//		auto parse_error = mmp::annotation::file::parse(positives[i], annotation);
-//		if (!!parse_error)
-//		{
-//#pragma omp critical
-//			{
-//				mmp::log << to::both << "error parsing [" << positives[i] << "]: " << parse_error.error_msg() << std::endl;
-//
-//#pragma omp flush(processed)
-//				++processed;
-//			}
-//
-//			continue;
-//		}
-//
-//		annotated_image img(annotation, cv::imread(cfg.root_path() + "/" + annotation.get_image_filename()));
-//		img.detect_all(c, detection_threshold, 1.01f);
-//		img.suppress_non_maximum();
-//
-//		std::vector<double> temp_labels;
-//		for (auto& detection : img.get_detections())
-//			temp_labels.push_back(img.is_valid_detection(detection.second->rect()) ? 1 : -1);
 		hog hog(cv::imread(positives[i])(positive_roi));
 		auto weight = c.classify(hog());
 
 #pragma omp critical
 		{
-//			labels.insert(labels.end(), temp_labels.begin(), temp_labels.end());
-//
-//			for (auto& detection : img.get_detections())
-//				scores.push_back(detection.first);
-
 			labels.push_back(1);
 			scores.push_back(weight);
 
@@ -125,7 +98,6 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	{
 		image img(cv::imread(negatives[i]));
 		img.detect_all(c, detection_threshold, 1.01f);
-		//img.suppress_non_maximum();
 
 #pragma omp critical
 		{
@@ -230,34 +202,31 @@ void mat_plot::show(const std::string& title) const
 
 void mat_plot::save(const std::string& filename) const
 {
-	std::ofstream plot_file(filename);
+	std::ofstream skript_file(filename);
+	std::ofstream label_file(filename + "_labels");
+	std::ofstream score_file(filename + "_scores");
 
 	// labels
-	plot_file << "labels = [";
-	for (matlab_array::size_type i = 0; i < labels_data.size();)
+	for (auto i = labels_data.begin(); i != labels_data.end();)
 	{
-		plot_file << labels_data[i] << ", ";
-
-		if (++i % 25 == 0)
-			plot_file << "..." << std::endl;
+		label_file << *i++;
+		if (i != labels_data.end())
+			label_file << ",";
 	}
-	plot_file << "];" << std::endl;
 
 	// scores
-	plot_file << "scores = [";
-	for (matlab_array::size_type i = 0; i < scores_data.size();)
+	for (auto i = scores_data.begin(); i != scores_data.end();)
 	{
-		plot_file << scores_data[i] << ", ";
-
-		if (++i % 25 == 0)
-			plot_file << "..." << std::endl;
+		score_file << *i++;
+		if (i != scores_data.end())
+			score_file << ",";
 	}
-	plot_file << "];" << std::endl;
 
 	// plot
-	plot_file << "vl_det(labels, scores);" << std::endl;
-	plot_file << "axis([10^-6 10^-1 0.01 0.5]);" << std::endl;
-	plot_file.close();
+	skript_file << "labels = dlmread('" << filename << "_labels');" << std::endl;
+	skript_file << "scores = dlmread('" << filename << "_scores');" << std::endl;
+	skript_file << "vl_det(labels, scores);" << std::endl;
+	skript_file << "axis([10^-6 10^-1 0.01 0.5]);" << std::endl;
 }
 
 qualitative_evaluator::qualitative_evaluator(const mmp::inria_cfg& cfg, const classifier& c, const classifier& c_hard)
