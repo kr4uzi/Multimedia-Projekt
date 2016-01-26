@@ -18,7 +18,7 @@ hog::array_type hog::vlarray_to_cvstylevec(const array_type& vlarray, array_type
 }
 
 hog::hog(const cv::Mat& src)
-	: _hog(vl_hog_new(VlHogVariant::VlHogVariantUoctti, orientations, VL_FALSE))
+	: _hog(vl_hog_new(variant == DalalTriggs ? VlHogVariant::VlHogVariantDalalTriggs : VlHogVariant::VlHogVariantUoctti, orientations, VL_FALSE))
 {
 	assert(src.type() == CV_8UC1 || src.type() == CV_8UC3);
 	auto img_converted = cvmat_to_vlarray<uchar>(src);
