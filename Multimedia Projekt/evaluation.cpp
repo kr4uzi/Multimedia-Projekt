@@ -97,7 +97,7 @@ quantitative_evaluator::quantitative_evaluator(const inria_cfg& cfg, const class
 	for (long i = 0; i < negatives.size(); i++)
 	{
 		image img(cv::imread(negatives[i]));
-		img.detect_all(c, detection_threshold, 1.01f);
+		img.detect_all(c, detection_threshold/*, 1.01f*/);
 
 #pragma omp critical
 		{
@@ -129,7 +129,7 @@ mat_plot::mat_plot(const matlab_array& lbls, const matlab_array& scrs)
 	int engine_error;
 	engine = engOpenSingleUse(nullptr, nullptr, &engine_error);
 	if (!engine)
-		throw std::exception("could not open engine");
+		throw "could not open engine";
 
 	// labels
 	labels = mxCreateDoubleMatrix(1, labels_data.size(), mxREAL);
@@ -137,7 +137,7 @@ mat_plot::mat_plot(const matlab_array& lbls, const matlab_array& scrs)
 	if (engPutVariable((Engine *)engine, "labels", (mxArray *)labels))
 	{
 		engClose((Engine *)engine);
-		throw std::exception("error putting labels\n");
+		throw "error putting labels\n";
 	}
 
 	// scores
@@ -147,7 +147,7 @@ mat_plot::mat_plot(const matlab_array& lbls, const matlab_array& scrs)
 	{
 		mxDestroyArray((mxArray *)labels);
 		engClose((Engine *)engine);
-		throw std::exception("error putting scores\n");
+		throw "error putting scores\n";
 	}
 #endif
 }
@@ -191,7 +191,7 @@ void mat_plot::show(const std::string& title) const
 #ifdef WITH_MATLAB	
 	// vl_det(labels, scores);
 	if (engEvalString((Engine *)engine, "vl_det(labels, scores);"))
-		throw std::exception("could not plot DET");
+		throw "could not plot DET";
 
 	engEvalString((Engine *)engine, "axis([10^-6 10^-1 0.01 0.5]);");
 

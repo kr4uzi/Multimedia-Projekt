@@ -54,8 +54,9 @@ image::image(cv::Mat src)
 	}
 }
 
-void image::add_detection(detection det, float max_overlap)
+void image::add_detection(detection det/*, float max_overlap*/)
 {
+	/*
 	bool overlapped = false;
 	for (unsigned i = 0; i < detections.size(); i++)
 	{
@@ -71,7 +72,7 @@ void image::add_detection(detection det, float max_overlap)
 		}
 	}
 
-	if (!overlapped)
+	if (!overlapped)*/
 		detections.push_back(std::move(det));
 }
 
@@ -100,7 +101,7 @@ void image::suppress_non_maximum(float min_overlap)
 	detections.erase(std::remove_if(detections.begin(), detections.end(), marked_for_deletion), detections.end());
 }
 
-void image::detect_all(const classifier& c, double threshold, float max_overlap)
+void image::detect_all(const classifier& c, double threshold/*, float max_overlap*/)
 {
 	for (auto& s : scaled_images())
 	{
@@ -108,7 +109,7 @@ void image::detect_all(const classifier& c, double threshold, float max_overlap)
 		{
 			double a = c.classify(sw.features());
 			if (a > threshold)
-				add_detection(std::make_pair(a, &sw), max_overlap);
+				add_detection(std::make_pair(a, &sw)/*, max_overlap*/);
 		}
 	}
 }
