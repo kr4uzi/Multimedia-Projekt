@@ -4,13 +4,11 @@
 #include "helpers.h"
 #include "log.h"
 #include "inria.h"
-#include <boost/bind.hpp>
 #include <opencv2/highgui/highgui.hpp>	// imread
 #include <utility>		// pair, move
 #include <ctime>		// time
 #include <iterator>		// back_inserter, advance, make_move_iterator
 #include <set>
-#include <exception>
 using namespace mmp;
 
 namespace
@@ -38,25 +36,25 @@ namespace
 	};
 }
 
-classifier::classifier(const inria_cfg& c)
-	: cfg(c)
+classifier::classifier()
+	: model(nullptr)
 {		
 
 }
 
 classifier::classifier(classifier&& rhs)
-	: cfg(rhs.cfg), model(std::move(rhs.model)), positives(std::move(rhs.positives)), negatives(std::move(rhs.negatives))
+	: model(rhs.model), positives(std::move(rhs.positives)), negatives(std::move(rhs.negatives))
 {
-
+	rhs.model = nullptr;
 }
 
 classifier::~classifier()
 {
-
+	delete model;
 }
 
 
-void classifier::train()
+void classifier::train(const inria_cfg& cfg)
 {
 	to target = log >> target;
 	log << to::both << "starting training at: " << time_string() << std::endl;	
@@ -200,7 +198,7 @@ void classifier::train()
 
 double classifier::classify(const cv::Mat& mat) const
 {
-	if (!model) throw std::logic_error("classifier not loaded or trained");
+	if (!model) throw "classifier not loaded or trained";
 	//return model->classify(features_to_svector(mat));
 
 	assert(mat.channels() == hog::dimensions && "Parameters is not a mat returned by mmp::hog!");
@@ -212,9 +210,10 @@ double classifier::classify(const cv::Mat& mat) const
 	);
 }
 
-void classifier::load(bool hard)
+void classifier::load(const std::string& filename)
 {
-	model = new svm::linear_model(hard ? cfg.svm_file_hard() : cfg.svm_file());	
+	delete model;
+	model = new svm::linear_model(filename);	
 }
 
 svm::sparse_vector classifier::features_to_svector(const cv::Mat& mat)

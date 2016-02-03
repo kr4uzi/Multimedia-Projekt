@@ -10,7 +10,6 @@ namespace mmp
 	class classifier
 	{
 	private:
-		const inria_cfg& cfg;
 		svm::linear_model * model;
 
 		std::deque<svm::sparse_vector> positives;
@@ -21,11 +20,11 @@ namespace mmp
 
 	public:
 		classifier(classifier&& rhs);
-		classifier(const inria_cfg& cfg);
+		classifier();
 		~classifier();
 		
-		void train();
-		void load(bool hard = false);
+		void train(const inria_cfg& cfg);
+		void load(const std::string& filename);
 
 		double classify(const cv::Mat& mat) const;
 	};
