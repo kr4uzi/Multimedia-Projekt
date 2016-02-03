@@ -6,6 +6,7 @@
 #include "log.h"
 #include <iostream>			// endl
 #include <thread>
+#include <opencv2/highgui/highgui.hpp>	// imshow, waitKey
 
 int main(int argc, char ** argv)
 {
@@ -125,8 +126,8 @@ int main(int argc, char ** argv)
 	//
 	// actual program
 	//
-	mmp::classifier c_normal(cfg);
-	mmp::classifier c_hard(cfg);
+	mmp::classifier c_normal;
+	mmp::classifier c_hard;
 
 	mmp::log << "MMP Markus Kraus" << std::endl;
 	mmp::log << "started at: " << mmp::time_string() << std::endl << std::endl;
@@ -134,9 +135,11 @@ int main(int argc, char ** argv)
 	if (!skip_training)
 	{
 		mmp::log << "############ training ############" << std::endl;
-		mmp::classifier(cfg).train();
+		mmp::classifier().train(cfg);
 		mmp::log << std::endl;
 	}
+	else
+		mmp::log << "skipping training" << std::endl;
 
 	//
 	// load and validate svm_files
@@ -145,8 +148,8 @@ int main(int argc, char ** argv)
 	{
 		mmp::log << "########### evaluation ###########" << std::endl;
 		mmp::log << "loading svm files ..." << std::endl;
-		std::thread thn = std::thread([&c_normal]() { c_normal.load(); });
-		std::thread thh = std::thread([&c_hard]() { c_hard.load(true); });
+		std::thread thn = std::thread([&]() { c_normal.load(cfg.svm_file()); });
+		std::thread thh = std::thread([&]() { c_hard.load(cfg.svm_file_hard()); });
 
 		thn.join();
 		mmp::log << cfg.svm_file() << " loaded" << std::endl;
@@ -170,8 +173,11 @@ int main(int argc, char ** argv)
 		plot_hard.show("hard evaluation");
 		plot_hard.save(cfg.evaluation_file_hard());
 	}
+	else
+		mmp::log << "skipping quantitative evaluation" << std::endl;
 
-	mmp::log << std::endl << "finished at: " << mmp::time_string() << std::endl;
+	if (!skip_training || !skip_eval)
+		mmp::log << std::endl << "finished at: " << mmp::time_string() << std::endl;
 
 	//
 	// qualitative evaluation
@@ -181,6 +187,53 @@ int main(int argc, char ** argv)
 		mmp::log << mmp::to::console << std::endl << "qualitataive evaluation . . ." << std::endl;
 		mmp::qualitative_evaluator(cfg, c_normal, c_hard);
 		mmp::log << "qualitiative evaluation terminated" << std::endl;
+	}
+	else
+		mmp::log << "skipping qualitative evaluation" << std::endl;
+
+	//
+	// custom images
+	//
+	for (unsigned i = 0, j = 0; ; i++)
+	{
+		const auto custom_key = "custom" + std::to_string(i);
+		if (!raw_cfg.exists(custom_key))
+		{
+			if (i || j) cv::waitKey();
+			break;
+		}
+
+		auto svm_file = raw_cfg.get_string(custom_key);
+		if (!mmp::path_exists(svm_file))
+		{
+			mmp::log << mmp::to::both << "[" << svm_file << "] not found. ignoring!" << std::endl;
+			continue;
+		}
+
+		mmp::classifier c;
+		c.load(svm_file);
+
+		for (j = 0; ; j++)
+		{
+			const auto img_key = custom_key + "_" + std::to_string(j);
+			if (!raw_cfg.exists(img_key)) break;
+
+			auto img_file = raw_cfg.get_string(img_key);
+			if (!mmp::path_exists(img_file))
+			{
+				mmp::log << mmp::to::both << "[" << img_file << "] not found. ignoring!" << std::endl;
+				continue;
+			}
+
+			mmp::image i(cv::imread(img_file));
+			i.detect_all(c);
+			i.suppress_non_maximum();
+
+			auto img = cv::imread(img_file);
+			for (auto& d : i.get_detections())
+				cv::rectangle(img, d.second->rect(), cv::Scalar(255, 0, 0));
+			cv::imshow(img_key, img);
+		}
 	}
 
 #ifdef WITH_MATLAB
