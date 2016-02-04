@@ -209,9 +209,11 @@ int main(int argc, char ** argv)
 			mmp::log << mmp::to::both << "[" << svm_file << "] not found. ignoring!" << std::endl;
 			continue;
 		}
-
+		
 		mmp::classifier c;
+		mmp::log << mmp::to::both << "loading [" << svm_file << "] ... ";
 		c.load(svm_file);
+		mmp::log << "done" << std::endl;
 
 		for (j = 0; ; j++)
 		{
