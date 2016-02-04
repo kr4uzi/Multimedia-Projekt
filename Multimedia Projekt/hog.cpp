@@ -1,5 +1,6 @@
 #include "hog.h"
 #include <vl/hog.h>
+#include <algorithm> // max
 using namespace mmp;
 
 hog::array_type hog::vlarray_to_cvstylevec(const array_type& vlarray, array_type::size_type height, array_type::size_type width, array_type::size_type dimensions)
@@ -25,6 +26,7 @@ hog::hog(const cv::Mat& src)
 	vl_hog_put_image((VlHog *)_hog, img_converted.data(), src.cols, src.rows, src.channels(), cellsize);
 	hog_width = vl_hog_get_width((VlHog *)_hog);
 	hog_height = vl_hog_get_height((VlHog *)_hog);
+	assert(hog_width && hog_height);
 	assert(dimensions == vl_hog_get_dimension((VlHog *)_hog));
 
 	std::vector<float> hog_array(hog_width * hog_height * dimensions);
@@ -57,11 +59,15 @@ cv::Mat hog::render(const cv::Mat& mat) const
 
 const cv::Mat hog::operator()(const cv::Rect& roi) const
 {
-	const int from_x = roi.x / cellsize;
-	const int from_y = roi.y / cellsize;
-	const int to_x = ((roi.x + roi.width) + cellsize / 2) / cellsize;
-	const int to_y = ((roi.y + roi.height) + cellsize / 2) / cellsize;
-	return hog_converted(cv::Rect(cv::Point(from_x, from_y), cv::Point(to_x, to_y)));
+	const int x = roi.x / cellsize;
+	const int y = roi.y / cellsize;
+	const int width = (roi.width + cellsize / 2) / cellsize;
+	const int height = (roi.height + cellsize / 2) / cellsize;
+	// assuming we have a 2x2 hog and cellsize=8, we'd get a 0x0 mat
+	// if we have a x = y = 0, width = height = 3
+	// its not possible to create a hog of a 3x3 image however
+	// (this ensures that we always have at least a 1x1 hog)
+	return hog_converted(cv::Rect(x, y, std::max(1, width), std::max(1, height)));
 }
 
 std::size_t hog::hog_size(const cv::Rect& roi)
